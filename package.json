@@ -1,6 +1,7 @@
 {
   "name": "appunti-web",
   "version": "1.0.0",
+  "private": true,
   "description": "esghere",
   "main": "build/app.js",
   "scripts": {
@@ -16,5 +17,16 @@
   "bugs": {
     "url": "https://github.com/unimoreinginfo/node-appunti-web/issues"
   },
-  "homepage": "https://github.com/unimoreinginfo/node-appunti-web#readme"
+  "homepage": "https://github.com/unimoreinginfo/node-appunti-web#readme",
+  "dependencies": {
+    "@types/express": "^4.17.7",
+    "@types/mysql": "^2.15.15",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1",
+    "twig": "^1.15.1"
+  },
+  "devDependencies": {
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  }
 }
