@@ -1,0 +1,11 @@
+{
+    "script": "./build/app.js",
+    "watch": true,
+    "ignore_watch": ["./data", "./assets"],
+    "watch_options": {
+        "followSymlinks": false
+    },
+    "node_args": [],
+    "name": "appunti-web"
+}
+
