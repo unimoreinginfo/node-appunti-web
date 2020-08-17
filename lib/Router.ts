@@ -23,7 +23,7 @@ export default class Router{
 
         console.log(`listening on ${process.env.PORT}`);
         console.log(`live on ${process.env.URI}`);
-        
+        console.log(`test`);      
         
 
     }
