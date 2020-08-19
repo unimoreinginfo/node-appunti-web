@@ -6,7 +6,8 @@
   "main": "build/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "app": "~/.npm-global/bin/tsc && node build/app.js"
+    "app": "~/.npm-global/bin/tsc && node build/app.js",
+    "seed": "~/.npm-global/bin/tsc && node build/db_seed.js"
   },
   "repository": {
     "type": "git",

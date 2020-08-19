@@ -19,6 +19,7 @@ export default class Router{
         
         this.#app.use(helmet())
         this.#app.use('/', require("./routes/main")); // possiamo fare sta cosa del require perché tanto quando viene chiamato il file è già in .js
+        this.#app.use('/', require("./routes/subjects"));
         this.#app.listen(process.env.PORT);
 
         console.log(`listening on ${process.env.PORT}`);
