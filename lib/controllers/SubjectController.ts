@@ -10,11 +10,7 @@ export default {
             name, professorName, professorSurname
         ]);
     },
-
-    removeSubject: async function (subjectId: number) {
-        return await db.query("DELETE FROM subjects WHERE id=?", subjectId);
-    },
-
+    
     getSubjects: async function () {
         return await db.query("SELECT * FROM subjects");
     }
