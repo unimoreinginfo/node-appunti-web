@@ -19,30 +19,43 @@ export default {
         );
     },
 
+    updateNote: async function (noteId: number, title: string, subjectId: number) {
+        return await db.query(
+            "UPDATE notes SET title=?, subject_id=? WHERE id=?",
+            [title, subjectId, noteId]
+        );
+    },
+
     getNote: async function (id: number) {
-        return await db.query("SELECT * FROM notes WHERE id=?", id);
+        const res = (await db.query("SELECT * FROM notes WHERE id=?", id)).results;
+        return res.length > 0 ? res[0] : undefined;
     },
 
     getNotes: async function (subjectId?: number, authorId?: number, orderBy?: string) {
-        let queryStr = "SELECT * FROM notes WHERE 1=1"; // 1=1 to use AND from now on... >:c
+        let query = "SELECT * FROM notes";
         let params: any[] = [];
+        let cond: string[] = [];
 
         if (subjectId) {
-            queryStr += " AND subject_id=?";
+            cond.push("subject_id=?");
             params.push(subjectId);
         }
 
         if (authorId) {
-            queryStr += " AND author_id=?";
+            cond.push("author_id=?");
             params.push(authorId);
         }
 
-        if (orderBy) {
-            queryStr += " ORDER BY ?";
+        if (cond.length > 0) {
+            query += " WHERE " + cond.join(" AND ");
+        }
+
+        if (orderBy && (orderBy.toLowerCase() === "asc" || orderBy.toLowerCase() === "desc")) {
+            query += " ORDER BY title " + orderBy;
             params.push(orderBy);
         }
 
-        return await db.query(queryStr, params);
+        return await db.query(query, params);
     },
 
     deleteNote: async function (id: number) {
