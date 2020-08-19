@@ -1,25 +1,21 @@
 import db from "../db";
-
+import path from "path";
 import crypto from "crypto"
-
-function getNoteFileUrl(fileId: string) {
-    return `/public/notes/${fileId}.pdf`;
-}
-
-function storeNoteFile(file: any) {
-    const fileId = crypto.randomBytes(64).toString("hex");
-    file.mv(`./public/notes/${fileId}.pdf`);
-    return fileId;
-}
 
 export default {
     addNote: async function (title: string, file: any, subjectId: number) {
         const authorId = (await db.query("SELECT id FROM users LIMIT 1")).results[0].id; // TODO!!! real shit, use the id of the user currently logged in instead.
-        const fileId = storeNoteFile(file);
+
+        const fileExt = path.extname(file.name);
+        const fileId = crypto.randomBytes(64).toString("hex");
+        const filePath = `./public/notes/${fileId}${fileExt}`;
+        const fileUrl = `/public/notes/${fileId}${fileExt}`
+
+        file.mv(filePath);
 
         return await db.query(
             "INSERT INTO notes (title, original_filename, uploaded_at, storage_url, subject_id, author_id) VALUES (?, ?, ?, ?, ?, ?)",
-            [title, file.name, new Date(), getNoteFileUrl(fileId), subjectId, authorId]
+            [title, file.name, new Date(), fileUrl, subjectId, authorId]
         );
     },
 
