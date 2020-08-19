@@ -49,11 +49,11 @@ Reads the notes from the form-data channel and stores them within the /public fo
 There isn't any file-type check, thus notes can be of any kind of format (pdf, images or archives).
 
 ##### Body parameters
-| Name | Type | Description
-| ---- | ---- | -----------
-| notes | `file` | The notes file to upload.
-| title | `string` | The title of the notes file that will be displayed.
-| subjectId | `number` | The ID of the subject these notes refer to.
+| Name | Type | Description | Required
+| ---- | ---- | ----------- | --------
+| notes | `file` | The notes file to upload. | Yes
+| title | `string` | The title of the notes file that will be displayed. | Yes
+| subjectId | `number` | The ID of the subject these notes refer to. | Yes
 
 ### `DELETE /notes/:noteId`
 
@@ -83,7 +83,7 @@ Gets all the notes uploaded, with optional filters.
 | ---- | ---- | ----------- | --------
 | subjectId | `number` | The ID of the subject of the notes to get. | No
 | authorId | `number` | The ID of the author of the notes to get. | No
-| authorId | `"asc" | "desc"`| Defines the way notes will be ordered (always by title). | No
+| authorId | `"asc" or "desc"`| Defines the way notes will be ordered (always by title). | No
 
 ##### Response
 ```json
