@@ -20,9 +20,11 @@
   },
   "homepage": "https://github.com/unimoreinginfo/node-appunti-web#readme",
   "dependencies": {
+    "@types/bcryptjs": "^2.4.2",
     "@types/express": "^4.17.7",
     "@types/mysql": "^2.15.15",
     "@types/node": "^14.6.0",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "helmet": "^4.1.0",

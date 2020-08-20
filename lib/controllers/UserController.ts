@@ -1,4 +1,5 @@
 import db from "../db";
+import bcrypt = require("bcryptjs");
 
 export default {
     updateUserInfo: async function (id: number, name: string, surname: string, password: string, unimoreId?: number) {
@@ -9,9 +10,19 @@ export default {
 
     createUser: async function (name: string, surname: string, email: string, password: string, admin: number, unimoreId?: number) {
         // TODO!!! Hash password pls
-        return await db.query("INSERT INTO users (name, surname, email, password, admin, unimore_id) VALUES (?, ?, ?, ?, ?, ?)", [
-            name, surname, email, password, admin, unimoreId
-        ]);
+
+        try{
+        
+            let hash = await bcrypt.hash(password, 8); // 8 rounds are fine i guess
+            return await db.query("INSERT INTO users (name, surname, email, password, admin, unimore_id) VALUES (?, ?, ?, ?, ?, ?)", [
+                name, surname, email, password, admin, unimoreId
+            ]);
+
+        }catch(err){
+
+            throw err;
+
+        }
     },
 
     getUser: async function (id: number) {
