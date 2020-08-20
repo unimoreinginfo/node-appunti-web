@@ -28,7 +28,7 @@ export default {
 
     getNote: async function (id: number) {
         const res = (await db.query("SELECT * FROM notes WHERE id=?", id)).results;
-        return res.length > 0 ? res[0] : undefined;
+        return res.length > 0 ? res[0] : null;
     },
 
     getNotes: async function (subjectId?: number, authorId?: number, orderBy?: string) {

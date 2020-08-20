@@ -15,6 +15,9 @@ export default class HTTPError{
     // errors
     public static readonly USER_EXISTS: HTTPError = new HTTPError('user_exists', 409);
     public static readonly NOT_FOUND: HTTPError = new HTTPError('not_found', 404);
+    public static readonly INVALID_CREDENTIALS = new HTTPError('invalid_credentials', 401);
+    public static readonly EXPIRED_CREDENTIALS = new HTTPError('expired_credentials', 401);
+    public static readonly GENERIC_ERROR = new HTTPError('generic_error', 500);
 
     public toResponse(res: Response): Response{
 

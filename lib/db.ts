@@ -3,7 +3,7 @@ import { Pool, createPool } from "mysql";
 class Db {
     pool: Pool | undefined = undefined;
 
-    construtor() {
+    constructor() {
     }
 
     init() {
