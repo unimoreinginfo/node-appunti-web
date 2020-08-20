@@ -30,7 +30,7 @@ export default {
         }
     },
 
-    getUser: async function (id: number) {
+    getUser: async function (id: string) {
         return await db.query("SELECT * FROM users WHERE id=?", id);
     }
 }
