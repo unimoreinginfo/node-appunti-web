@@ -14,9 +14,7 @@ export default class Router{
         // vedremo se sta cosa ha un'utilità oppure no
         this.#app = express();
         this.#whitelist = [
-            `https://betappunti.carminezacc.com`,
-            `https://beta.emilianomaccaferri.com`,
-            `https://ruta.emilianomaccaferri.com`
+            `https://betappunti.carminezacc.com`
         ] // whitelist di domini per il CORS
 
     }
@@ -27,12 +25,10 @@ export default class Router{
         // così è tutto molto più organizzato
 
         let cors_options = {
-            origin: (origin, callback) => {
-                console.log(origin);
-                
-                if(this.#whitelist.indexOf(origin) !== -1)
-                    callback(null, true)
-            }
+            credentials: true,
+            origin: this.#whitelist,
+            allowedHeaders: ['Authorization'],
+            methods: ['GET', 'POST', 'DELETE', 'PUT']
         }
 
         this.#app.use(helmet());
