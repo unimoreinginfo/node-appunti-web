@@ -3,6 +3,9 @@
 
 https://beta.emilianomaccaferri.com
 
+# TODO
+
+* aes encryption in-db per i campi degli utenti (gdpr guyssss)
   
 
 # Come fare le cosine
