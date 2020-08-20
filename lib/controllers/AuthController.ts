@@ -31,11 +31,8 @@ const self = {
         let token = req.headers.authorization.split("Bearer ")[1];
         try{
 
-            await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' })
-            res.json({
-                success: true,
-                message: 'valid_session'
-            })
+            let user = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' })
+            res.user = user;
 
         }catch(err){
 
@@ -67,6 +64,13 @@ const self = {
                 })
 
                 res.header('Authorization', `Bearer ${auth_token}`);
+                res.user = {
+                    userid: session.results.user_id,
+                    name: user.results.name,
+                    surname: user.results.surname,
+                    email: user.results.email,
+                    isAdmin: user.results.admin
+                }
                 next();
 
             }
