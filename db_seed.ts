@@ -1,5 +1,6 @@
 import db from "./lib/db"
 import * as dotenv from "dotenv";
+import bcrypt from "bcryptjs"
 
 import SubjectController from "./lib/controllers/SubjectController";
 import UserController from "./lib/controllers/UserController";
@@ -25,7 +26,8 @@ Promise.all([
     })(),
     (async () => {
         const users = [
-            ["Lorenzo", "Rutayisire", "loryruta23@gmail.com", "TODO_hashed_password", 1, 272281],
+            ["Lorenzo", "Rutayisire", "loryruta23@gmail.com", bcrypt.hashSync("TODO_hashed_password"), 1, 272281],
+            ["Emiliano", "Maccaferri", "inbox@emilianomaccaferri.com", bcrypt.hashSync("ciao_vez"), 1, 272244]
         ];
 
         await Promise.all(users.map(async (user: any[]) => {

@@ -30,7 +30,8 @@
     "express-fileupload": "^1.2.0",
     "helmet": "^4.1.0",
     "mysql": "^2.18.1",
-    "twig": "^1.15.1"
+    "twig": "^1.15.1",
+    "xss-filters": "^1.2.7"
   },
   "devDependencies": {
     "webpack": "^4.44.1",
