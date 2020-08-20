@@ -32,7 +32,7 @@ export default class Router{
 
         this.#app.all('*', (req: express.Request, res: express.Response) => {
 
-            return HTTPError.USER_EXISTS.toResponse(res);
+            return HTTPError.NOT_FOUND.toResponse(res);
             
         })
 
