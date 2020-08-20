@@ -12,6 +12,7 @@ export default class HTTPError{
 
     }
 
+    // errors
     public static readonly USER_EXISTS: HTTPError = new HTTPError('user_exists', 409);
     public static readonly NOT_FOUND: HTTPError = new HTTPError('not_found', 404);
 
