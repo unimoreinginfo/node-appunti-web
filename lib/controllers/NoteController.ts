@@ -4,7 +4,7 @@ import crypto from "crypto"
 
 export default {
     addNote: async function (title: string, file: any, subjectId: number) {
-        const authorId = (await db.query("SELECT id FROM users LIMIT 1")).results[0].id; // TODO!!! real shit, use the id of the user currently logged in instead.
+        const authorId = (await db.query("SELECT id FROM users LIMIT 1")).results[0].id; // TODO!!! real shit, use the id of the user currently logged instead.
 
         const fileExt = path.extname(file.name);
         const fileId = crypto.randomBytes(64).toString("hex");

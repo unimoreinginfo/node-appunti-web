@@ -6,7 +6,7 @@ import HTTPError from "../HTTPError";
 
 let router = express.Router();
 
-router.post('/register', async(req: express.Request, res: express.Response) => {
+/*router.post('/register', async(req: express.Request, res: express.Response) => {
 
     let username: string = xss.inHTMLData(req.body.username),
         email: string = xss.inHTMLData(req.body.email),
@@ -15,6 +15,15 @@ router.post('/register', async(req: express.Request, res: express.Response) => {
 
     if(await UserController.isRegistered(email))
         return HTTPError.USER_EXISTS.toResponse(res);
+
+
+
+})*/ // todo 
+
+
+router.post('/login', async(req: express.Request, res: express.Response) => {
+
+    
 
 })
 
