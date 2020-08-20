@@ -32,7 +32,7 @@ const self = {
         try{
 
             let user = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' })
-            res.user = user;
+            res.set('user', JSON.stringify(user));
 
         }catch(err){
 
@@ -56,21 +56,16 @@ const self = {
 
                 let user = await UserController.getUser(session.results[0].user_id);
                 let auth_token = await self.signJWT({
-                    userid: session.results.user_id,
-                    name: user.results.name,
-                    surname: user.results.surname,
-                    email: user.results.email,
-                    isAdmin: user.results.admin
+                    userid: session.results[0].user_id,
+                    name: user.results[0].name,
+                    surname: user.results[0].surname,
+                    email: user.results[0].email,
+                    isAdmin: user.results[0].admin
                 })
 
                 res.header('Authorization', `Bearer ${auth_token}`);
-                res.user = {
-                    userid: session.results.user_id,
-                    name: user.results.name,
-                    surname: user.results.surname,
-                    email: user.results.email,
-                    isAdmin: user.results.admin
-                }
+                res.set('user', JSON.stringify(await jwt.verify(auth_token, process.env.JWT_KEY, { algorithm: 'HS256' })));
+
                 next();
 
             }
