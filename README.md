@@ -82,7 +82,7 @@ Gets all the notes uploaded, with optional filters.
 | Name | Type | Description | Required
 | ---- | ---- | ----------- | --------
 | subjectId | `number` | The ID of the subject of the notes to get. | No
-| authorId | `number` | The ID of the author of the notes to get. | No
+| authorId | `string` | The ID of the author of the notes to get. | No
 | authorId | `"asc" or "desc"`| Defines the way notes will be ordered (always by title). | No
 
 ##### Response
