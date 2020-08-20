@@ -14,10 +14,7 @@ export default class Router{
         // vedremo se sta cosa ha un'utilità oppure no
         this.#app = express();
         this.#whitelist = [
-            `https://betappunti.carminezacc.com`,
-            `https://beta.emilianomaccaferri.com`,
-            `https://ruta.emilianomaccaferri.com`,
-            `same-origin`
+            `https://betappunti.carminezacc.com`
         ] // whitelist di domini per il CORS
 
     }
@@ -34,9 +31,6 @@ export default class Router{
             methods: ['GET', 'POST', 'DELETE', 'PUT']
         }
 
-        /*this.#app.use((req, res, next) => {
-            res.setHeader("Access-Control-Allow-Origin", "*");
-        })*/
         this.#app.use(helmet());
         this.#app.use(fileUpload({createParentPath: true}));
         this.#app.use(cors(cors_options));
