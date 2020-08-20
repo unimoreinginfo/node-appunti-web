@@ -17,7 +17,7 @@ class Db {
         });
     }
 
-    query(query: string, options: any = {}) {
+    query(query: string, options: any = {}): any {
         return new Promise((resolve, reject) => {
             this.pool!.query(query, options, function (err, results, fields) {
                 if (err)

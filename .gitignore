@@ -106,3 +106,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Folder reserved to public files (in this case notes, propics...)
+public

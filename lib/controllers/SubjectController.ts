@@ -2,7 +2,8 @@ import db from "../db";
 
 export default {
     truncate: async function () {
-        return await db.query("DELETE FROM subjects");
+        await db.query("DELETE FROM subjects");
+        await db.query("ALTER TABLE subjects AUTO_INCREMENT = 1");
     },
 
     createSubject: async function (name: string, professorName: string, professorSurname: string) {

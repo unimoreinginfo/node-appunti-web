@@ -22,10 +22,11 @@ CREATE TABLE subjects(
 CREATE TABLE notes(
     id INT AUTO_INCREMENT,
     title VARCHAR(1024),
-    file_id VARCHAR(256), -- The file_id refers to the name of the note's file in the storage, excluding the extension (that is always .pdf).
+    original_filename VARCHAR(256),
+    uploaded_at DATETIME,
+    storage_url VARCHAR(256) NOT NULL UNIQUE,
     subject_id INT,
     author_id INT,
-    uploaded_at DATETIME,
 
     PRIMARY KEY (id),
     FOREIGN KEY (subject_id) REFERENCES subjects(id),
