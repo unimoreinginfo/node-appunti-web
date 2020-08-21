@@ -4,8 +4,7 @@ import AuthController, { JWTPayload } from "../controllers/AuthController";
 import UserController from "../controllers/UserController";
 import { randomBytes } from "crypto";
 import HTTPError from "../HTTPError";
-import jwt from "jsonwebtoken"
-import db from '../db';
+import utils from "../utils"
 
 let router = express.Router();
 
@@ -24,7 +23,7 @@ let router = express.Router();
 })*/ // todo long and boring
 
 
-router.post('/login', async(req: express.Request, res: express.Response) => {
+router.post('/login', utils.requiredParameters("POST", ["email", "password"]), async(req: express.Request, res: express.Response) => {
 
     let email = xss.inHTMLData(req.body.email),
         password = xss.inHTMLData(req.body.password),
@@ -52,8 +51,8 @@ router.post('/login', async(req: express.Request, res: express.Response) => {
         
         await AuthController.addRefreshToken(refresh_token, user[0].id);
 
-        res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST,  maxAge: process.env.REFRESH_TOKEN_TIMEOUT_SECONDS, httpOnly: true, secure: true});
-        res.json({success: true, auth_token, refresh_token_expiry: (Date.now() / 1000) + parseInt(process.env.REFRESH_TOKEN_TIMEOUT_SECONDS)}); 
+        res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST,  maxAge: parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS)), httpOnly: true, secure: true});
+        res.json({success: true, auth_token, refresh_token_expiry: ((Date.now() / 1000) + parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS))).toFixed(0)}); 
         
     }catch(err){
 

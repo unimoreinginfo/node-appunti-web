@@ -10,7 +10,7 @@ https://beta.emilianomaccaferri.com
 
 # Come fare le cosine
 
-<b>IMPORTANTE: COMMITTARE CON `git commit --author="Nome &lt;email&gt;"`</b><br>
+**IMPORTANTE: COMMITTARE CON `git commit --author="Nome &lt;email&gt;"`**<br>
 
 Per modificare la configurazione usare il file `.env` sul server.<br>
 
@@ -19,12 +19,35 @@ Per guardare lo stato/l'output del processo fare `pm2 appunti-web logs`.<br>
 VI PREGO COMMENTATE<br>
 
 # API
-
+## Base endpoint: `/`
 ### `/`
 
 * Route di default (index)
 
 * Non fa nulla in particolare
+---
+## Base endpoint `/auth`
+
+### `POST /auth/login`
+### Description
+* User login
+##### Body parameters
+
+| Name | Type | Description | Required
+| ---- | ---- | ----------- | --------
+| email | `string` | User's email. | Yes
+| password | `string` | Users's password | Yes
+
+#### Response
+```json
+{
+    "success": true,
+    "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1OTgwMDg4NzAsImV4cCI6MTU5ODAxNjA3MH0.iA76ces4ebpK22cInRSQP2sq5L29EKD-4JeyO7T_2H8",
+    "refresh_token_expiry": "1600600871"
+}
+```
+---
+## Base endpoint: `/notes`
 
 ### `GET /notes/:noteId`
 

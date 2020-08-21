@@ -7,6 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "app": "~/.npm-global/bin/tsc && node build/app.js",
+    "daemonized": "~/.npm-global/bin/tsc && pm2 start process.json",
     "seed": "~/.npm-global/bin/tsc && node build/db_seed.js",
     "compile": "~/.npm-global/bin/tsc"
   },
