@@ -44,7 +44,6 @@ router.post('/login', async(req: express.Request, res: express.Response) => {
         email: user.email,
         isAdmin: user.admin
     }
-    
 
     try{
         
@@ -53,8 +52,8 @@ router.post('/login', async(req: express.Request, res: express.Response) => {
         
         await AuthController.addRefreshToken(refresh_token, user[0].id);
 
-        res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST,  maxAge: 7200000, httpOnly: true, secure: true});
-        res.json({success: true, auth_token}); 
+        res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST,  maxAge: process.env.REFRESH_TOKEN_TIMEOUT_SECONDS, httpOnly: true, secure: true});
+        res.json({success: true, auth_token, refresh_token_expiry: (Date.now() / 1000) + parseInt(process.env.REFRESH_TOKEN_TIMEOUT_SECONDS)}); 
         
     }catch(err){
 

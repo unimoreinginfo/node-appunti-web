@@ -4,6 +4,7 @@ import { Request, Response, NextFunction } from 'express'
 import HTTPError from "../HTTPError"
 import UserController from "../controllers/UserController"
 import jwt from "jsonwebtoken";
+import utils from '../utils';
 
 export interface JWTPayload{
     userid: string, 
@@ -22,8 +23,6 @@ const self = {
     },
 
     middleware: async(req: Request, res: Response, next: NextFunction) => {
-
-        console.log(req.headers.authorization);
 
         if(!req.headers.authorization)
             return HTTPError.INVALID_CREDENTIALS.toResponse(res);
