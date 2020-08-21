@@ -1,4 +1,4 @@
-import { Pool, createPool } from "mysql";
+import mysql, { Pool, createPool } from "mysql";
 
 class Db {
     pool: Pool | undefined = undefined;
@@ -17,14 +17,29 @@ class Db {
         });
     }
 
-    query(query: string, options: any = {}): any {
+    query(query: string, options: any = {}, buffered_results: boolean = false): any {
         return new Promise((resolve, reject) => {
             this.pool!.query(query, options, function (err, results, fields) {
                 if (err)
                     return reject(err);
+                
+                if(buffered_results){
+                
+                    results.forEach(result => {
+
+                        let keys = Object.keys(result);
+                        keys.forEach(key => {
+                            if(result[key] instanceof Buffer)
+                                result[key] = result[key].toString();
+                        })
+                    
+                    })
+
+                }
+
                 return resolve({
-                    results: results,
-                    fields: fields
+                    results,
+                    fields
                 });
             });
         });

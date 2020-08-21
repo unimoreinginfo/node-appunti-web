@@ -22,6 +22,12 @@ const self = {
 
     },
 
+    truncateSessions: async(): Promise<any> => {
+
+        return db.query("TRUNCATE sessions");
+
+    },
+
     middleware: async(req: Request, res: Response, next: NextFunction) => {
 
         if(!req.headers.authorization)

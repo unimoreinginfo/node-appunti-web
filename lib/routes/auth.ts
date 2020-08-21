@@ -8,19 +8,19 @@ import utils from "../utils"
 
 let router = express.Router();
 
-/*router.post('/register', async(req: express.Request, res: express.Response) => {
+router.post('/register', utils.requiredParameters("POST", ["username", "email", "password"]), async(req: express.Request, res: express.Response) => {
 
     let username: string = xss.inHTMLData(req.body.username),
         email: string = xss.inHTMLData(req.body.email),
         password: string = xss.inHTMLData(req.body.password),
-        unimore_id: string | undefined = xss.inHTMLData(req.body.unimore_id);
+        unimore_id: string | undefined = xss.inHTMLData(req.body.unimore_id); // facoltativo
 
     if(await UserController.isRegistered(email))
         return HTTPError.USER_EXISTS.toResponse(res);
 
 
 
-})*/ // todo long and boring
+}) // todo long and boring
 
 
 router.post('/login', utils.requiredParameters("POST", ["email", "password"]), async(req: express.Request, res: express.Response) => {

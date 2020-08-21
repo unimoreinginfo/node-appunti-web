@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs"
 
 import SubjectController from "./lib/controllers/SubjectController";
 import UserController from "./lib/controllers/UserController";
+import AuthController from "./lib/controllers/AuthController";
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ db.init();
 
 Promise.all([
     (async () => {
+        await AuthController.truncateSessions();
         await SubjectController.truncate();
         await Promise.all([
             SubjectController.createSubject("Analisi I", "Maria", "Manfredini"),
@@ -30,9 +32,7 @@ Promise.all([
             ["Emiliano", "Maccaferri", "inbox@emilianomaccaferri.com", bcrypt.hashSync("ciao_vez"), 1, 272244]
         ];
 
-        await Promise.all(users.map(async (user: any[]) => {
-            db.query("DELETE FROM users WHERE email=?", user[2]);
-        }));
+        db.query("DELETE FROM users");
 
         await Promise.all(users.map(async (user: any[]) => {
             (<any>UserController.createUser)(...user);
