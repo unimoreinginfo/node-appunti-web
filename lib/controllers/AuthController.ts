@@ -2,7 +2,7 @@ import db from "../db";
 import bcrypt from "bcryptjs";
 import { Request, Response, NextFunction } from 'express'
 import HTTPError from "../HTTPError"
-import UserController from "../controllers/UserController"
+import UserController, { User } from "../controllers/UserController"
 import jwt, { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
 import utils from '../utils';
 
@@ -48,44 +48,51 @@ const self = {
 
         }catch(err){
 
-
-            let refresh_token = req.cookies.ref_token;   
-            let session = await self.getSession(refresh_token);
-
             if(err.message === 'jwt malformed') // lol non c'è TokenMalformedException
                 return HTTPError.MALFORMED_CREDENTIALS.toResponse(res);
+                
             
-            if(!refresh_token || !session || !Object.keys(session).length)
-                return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+            let refresh_token = req.cookies.ref_token;   
+            self.getSession(refresh_token)
+                .then(async(session) => {
 
-            if(session.expiry <= (new Date().getTime() / 1000)){
-                await self.deleteRefreshToken(refresh_token);
-                return HTTPError.EXPIRED_CREDENTIALS.toResponse(res);
-            }
+                    if(!refresh_token || !session || !Object.keys(session).length)
+                    return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+    
+                    if(session.expiry <= (new Date().getTime() / 1000)){
+                        await self.deleteRefreshToken(refresh_token);
+                        return HTTPError.EXPIRED_CREDENTIALS.toResponse(res);
+                    }
+    
+                    if(err instanceof TokenExpiredError){
+    
+                        console.log("refreshing auth token for %s", session.user_id);
+    
+                        let user: User = await UserController.getUser(session.user_id) as User;
+                    
+                        let auth_token = await self.signJWT({
+                            userid: user.id,
+                            name: user.name,
+                            surname: user.surname,
+                            email: user.email,
+                            isAdmin: user.admin
+                        })
+    
+                        console.log(`new auth_token: ${auth_token}`);
+                    
+                        res.header('Authorization', `Bearer ${auth_token}`);
+                        res.set('user', JSON.stringify(await jwt.verify(auth_token, process.env.JWT_KEY, { algorithm: 'HS256' })));
+    
+                    }
+    
+                    next();
 
-            if(err instanceof TokenExpiredError){
-
-                console.log("refreshing auth token for %s", session.user_id);
-
-                let user = await UserController.getUser(session.user_id);
-                console.log(user);
-                
-                let auth_token = await self.signJWT({
-                    userid: user.id,
-                    name: user.name,
-                    surname: user.surname,
-                    email: user.email,
-                    isAdmin: user.admin
                 })
+                .catch(e => {
 
-                console.log(`new auth_token: ${auth_token}`);
-                
-                res.header('Authorization', `Bearer ${auth_token}`);
-                res.set('user', JSON.stringify(await jwt.verify(auth_token, process.env.JWT_KEY, { algorithm: 'HS256' })));
+                    return HTTPError.GENERIC_ERROR.toResponse(res);
 
-            }
-
-            next();
+                })
 
         }
 
@@ -93,19 +100,9 @@ const self = {
 
     getSession: async(token: string): Promise<Session | any> => {
 
-        try{
             
-            let session = (await db.query("SELECT * FROM sessions WHERE refresh_token = ?", [token]));
-            
-            return session.results[0];
-
-        }catch(err){
-
-            console.log(err);
-            
-            return Promise.reject(err);
-
-        }
+        let session = (await db.query("SELECT * FROM sessions WHERE refresh_token = ?", [token]));
+        return session.results[0];
 
     },
 
@@ -163,7 +160,7 @@ const self = {
 
         try{
 
-            let row = await UserController.getUserByEmail(email);
+            let row: User = await UserController.getUserByEmail(email) as User;
 
             if(Object.keys(row).length == 0)
                 return null;

@@ -1,4 +1,4 @@
-import db from "../db";
+import db, { core } from "../db";
 import utils from "../utils"
 import bcrypt = require("bcryptjs");
 import crypto from "crypto";
@@ -16,29 +16,28 @@ export interface User{
 export default {
     isRegistered: async (email: string): Promise<boolean> => {
 
-        return await db.query(`
+        return (await db.query(`
         
             SELECT * FROM (
-                SELECT AES_DECRYPT(email, ${ process.env.AES_KEY! }) email) AS result
+                SELECT AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email FROM users) AS result
             WHERE result.email = ?`, 
         
-        [email]).results.length > 0; // key is escaped dont worryyyyyyy
+        [email])).results.length > 0;
+        
 
     },
 
     createUser: async function (name: string, surname: string, email: string, password: string, admin: number, unimoreId?: number) {
 
-        console.log("creating users");
-
         return await db.query(`
             INSERT INTO users VALUES(
                 ?,
-                AES_ENCRYPT(?, '${ process.env.AES_KEY! }'),
-                AES_ENCRYPT(?, '${ process.env.AES_KEY! }'),
-                AES_ENCRYPT(?, '${ process.env.AES_KEY! }'),
+                AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }),
+                AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }),
+                AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }),
                 ?,
                 ?,
-                AES_ENCRYPT(?, '${ process.env.AES_KEY! }')
+                AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) })
             )
         `, [utils.generateUserId(), name, surname, email, await bcrypt.hash(password, 8), admin, unimoreId])
 
@@ -48,11 +47,11 @@ export default {
         const result = await db.query(`
             UPDATE users 
                 SET 
-                name = AES_ENCRYPT(?, '${ process.env.AES_KEY! }'), 
-                surname = AES_ENCRYPT(?, '${ process.env.AES_KEY! }'), 
+                name = AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }), 
+                surname = AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }), 
                 password = ?,
                 admin = ?, 
-                unimore_id = AES_ENCRYPT(?, '${ process.env.AES_KEY! }') 
+                unimore_id = AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }) 
             WHERE id = ?`, 
             [name, surname, await bcrypt.hash(password, 8), admin, unimoreId, userId
         ]);
@@ -63,10 +62,10 @@ export default {
         let users = (await db.query(`SELECT  
                 id, 
                 admin,
-                AES_DECRYPT(name, '${ process.env.AES_KEY! }') name, 
-                AES_DECRYPT(surname, '${ process.env.AES_KEY! }') surname,  
-                AES_DECRYPT(email, '${ process.env.AES_KEY! }') email, 
-                AES_DECRYPT(unimore_id, '${ process.env.AES_KEY! }') unimoreId
+                AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
+                AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
+                AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
+                AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimoreId
                 FROM users WHERE id = ?
             `, [userId], true));
 
@@ -78,10 +77,10 @@ export default {
                 ( SELECT 
                     id, 
                     password,
-                    AES_DECRYPT(name, '${ process.env.AES_KEY! }') name, 
-                    AES_DECRYPT(surname, '${ process.env.AES_KEY! }') surname,  
-                    AES_DECRYPT(email, '${ process.env.AES_KEY! }') email, 
-                    AES_DECRYPT(unimore_id, '${ process.env.AES_KEY! }') unimoreId FROM users )
+                    AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
+                    AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
+                    AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
+                    AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimoreId FROM users )
                 T
                 WHERE T.email = ?
             `, [email], true));
@@ -92,10 +91,10 @@ export default {
     getUsers: async function (): Promise<User[]> {
         let users = (await db.query(`SELECT  
                 id, 
-                AES_DECRYPT(name, '${ process.env.AES_KEY! }') name, 
-                AES_DECRYPT(surname, '${ process.env.AES_KEY! }') surname,  
-                AES_DECRYPT(email, '${ process.env.AES_KEY! }') email, 
-                AES_DECRYPT(unimore_id, '${ process.env.AES_KEY! }') unimoreId
+                AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
+                AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
+                AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
+                AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimoreId
                 FROM users
             `, [], true));
 

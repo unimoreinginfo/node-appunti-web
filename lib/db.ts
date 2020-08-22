@@ -47,3 +47,4 @@ class Db {
 }
 
 export default new Db();
+export const core = mysql;

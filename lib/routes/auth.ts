@@ -8,20 +8,45 @@ import utils from "../utils"
 
 let router = express.Router();
 
-router.post('/register', utils.requiredParameters("POST", ["username", "email", "password"]), async(req: express.Request, res: express.Response) => {
+router.post('/register|signup', utils.requiredParameters("POST", ["name", "surname", "email", "password"]), async(req: express.Request, res: express.Response) => {
 
-    let username: string = xss.inHTMLData(req.body.username),
+    let name: string = xss.inHTMLData(req.body.name),
+        surname: string = xss.inHTMLData(req.body.surname),
         email: string = xss.inHTMLData(req.body.email),
         password: string = xss.inHTMLData(req.body.password),
-        unimore_id: string | undefined = xss.inHTMLData(req.body.unimore_id); // facoltativo
+        unimore_id: number | undefined = req.body.unimore_id; // facoltativo
+    
+    if(!unimore_id)
+        unimore_id = 0;
 
-    if(await UserController.isRegistered(email))
-        return HTTPError.USER_EXISTS.toResponse(res);
+    /*
 
-}) // todo long and boring
+        todo: confirmation email, captcha
 
+    */
 
-router.post('/login', utils.requiredParameters("POST", ["email", "password"]), async(req: express.Request, res: express.Response) => {
+    try{
+
+        if(await UserController.isRegistered(email))
+            return HTTPError.USER_EXISTS.toResponse(res);
+        
+        await UserController.createUser(name, surname, email, password, 0, unimore_id);
+        return res.json({
+
+            success: true
+
+        })
+
+    }catch(err){
+
+        console.log(err);
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+
+    }
+
+});
+
+router.post('/login|signin', utils.requiredParameters("POST", ["email", "password"]), async(req: express.Request, res: express.Response) => {
 
     let email = xss.inHTMLData(req.body.email),
         password = xss.inHTMLData(req.body.password),
