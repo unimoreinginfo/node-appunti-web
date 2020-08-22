@@ -28,12 +28,11 @@ Promise.all([
     })(),
     (async () => {
         const users = [
-            ["Lorenzo", "Rutayisire", "loryruta23@gmail.com", bcrypt.hashSync("TODO_hashed_password"), 1, 272281],
-            ["Emiliano", "Maccaferri", "inbox@emilianomaccaferri.com", bcrypt.hashSync("ciao_vez"), 1, 272244]
+            ["Lorenzo", "Rutayisire", "loryruta23@gmail.com", await bcrypt.hashSync("nana", 8), 1, 272281],
+            ["Emiliano", "Maccaferri", "inbox@emilianomaccaferri.com", await bcrypt.hashSync("nana", 8), 1, 272244]
         ];
 
-        db.query("DELETE FROM users");
-
+        await db.query("DELETE FROM users");
         await Promise.all(users.map(async (user: any[]) => {
             (<any>UserController.createUser)(...user);
         }));

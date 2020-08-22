@@ -15,6 +15,3 @@ const router = new Router();
 router.init();
 
 db.init();
-
-console.log(process.env.AES_KEY);
-console.log("MySQL init");

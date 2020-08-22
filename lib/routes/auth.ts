@@ -18,8 +18,6 @@ router.post('/register', utils.requiredParameters("POST", ["username", "email", 
     if(await UserController.isRegistered(email))
         return HTTPError.USER_EXISTS.toResponse(res);
 
-
-
 }) // todo long and boring
 
 
@@ -49,7 +47,9 @@ router.post('/login', utils.requiredParameters("POST", ["email", "password"]), a
         let auth_token = await AuthController.signJWT(payload);
         let refresh_token = randomBytes(128).toString('hex');
         
-        await AuthController.addRefreshToken(refresh_token, user[0].id);
+        await AuthController.addRefreshToken(refresh_token, user.id);
+        console.log(refresh_token);
+        
 
         res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST,  maxAge: parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS)), httpOnly: true, secure: true});
         res.json({success: true, auth_token, refresh_token_expiry: ((Date.now() / 1000) + parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS))).toFixed(0)}); 

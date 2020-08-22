@@ -1,4 +1,3 @@
-import bcrypt from "bcryptjs"
 import { randomBytes } from "crypto"
 import HTTPError from './HTTPError'
 
@@ -28,7 +27,5 @@ export default {
     },
 
     generateUserId: () => randomBytes(32).toString('hex'),
-
-    hashPassword: async (password: string) => await bcrypt.hash(password, 8),
 
 }

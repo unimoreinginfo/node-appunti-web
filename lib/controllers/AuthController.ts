@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { Request, Response, NextFunction } from 'express'
 import HTTPError from "../HTTPError"
 import UserController from "../controllers/UserController"
-import jwt from "jsonwebtoken";
+import jwt, { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
 import utils from '../utils';
 
 export interface JWTPayload{
@@ -12,6 +12,11 @@ export interface JWTPayload{
     surname: string,
     email: string,
     isAdmin: number
+}
+export interface Session{
+    refresh_token: string,
+    user_id: string,
+    expiry: string
 }
 
 const self = {
@@ -24,7 +29,7 @@ const self = {
 
     truncateSessions: async(): Promise<any> => {
 
-        return db.query("TRUNCATE sessions");
+        return await db.query("TRUNCATE sessions");
 
     },
 
@@ -39,51 +44,60 @@ const self = {
             let user = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' })
             res.set('user', JSON.stringify(user));
 
+            next();
+
         }catch(err){
 
-            console.log("invalid or expired");
-            
-            // invalid or expired auth token
+
             let refresh_token = req.cookies.ref_token;   
             let session = await self.getSession(refresh_token);
 
-            if(!session.results.length)
-                return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+            if(err.message === 'jwt malformed') // lol non c'è TokenMalformedException
+                return HTTPError.MALFORMED_CREDENTIALS.toResponse(res);
             
-            if(session.results[0].expiry <= (new Date().getTime() / 1000)){
+            if(!refresh_token || !session || !Object.keys(session).length)
+                return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+
+            if(session.expiry <= (new Date().getTime() / 1000)){
                 await self.deleteRefreshToken(refresh_token);
                 return HTTPError.EXPIRED_CREDENTIALS.toResponse(res);
-            }else{
+            }
 
-                // auth token is expired, but refresh token is still good
+            if(err instanceof TokenExpiredError){
 
-                console.log("refreshing auth token for %s", session.results[0].user_id);
+                console.log("refreshing auth token for %s", session.user_id);
 
-                let user = await UserController.getUser(session.results[0].user_id);
+                let user = await UserController.getUser(session.user_id);
+                console.log(user);
+                
                 let auth_token = await self.signJWT({
-                    userid: session.results[0].user_id,
-                    name: user.results[0].name,
-                    surname: user.results[0].surname,
-                    email: user.results[0].email,
-                    isAdmin: user.results[0].admin
+                    userid: user.id,
+                    name: user.name,
+                    surname: user.surname,
+                    email: user.email,
+                    isAdmin: user.admin
                 })
 
+                console.log(`new auth_token: ${auth_token}`);
+                
                 res.header('Authorization', `Bearer ${auth_token}`);
                 res.set('user', JSON.stringify(await jwt.verify(auth_token, process.env.JWT_KEY, { algorithm: 'HS256' })));
 
-                next();
-
             }
+
+            next();
 
         }
 
     },
 
-    getSession: async(token: string): Promise<any | Error> => {
+    getSession: async(token: string): Promise<Session | any> => {
 
         try{
-
-            return await db.query("SELECT * FROM sessions WHERE refresh_token = ?", [token]);
+            
+            let session = (await db.query("SELECT * FROM sessions WHERE refresh_token = ?", [token]));
+            
+            return session.results[0];
 
         }catch(err){
 
@@ -133,7 +147,7 @@ const self = {
         try{
 
             console.log(user_id);
-            let expiry: number = (new Date().getTime() / 1000) + (30 * 24 * 60 * 60); // 1 mese di refresh token
+            let expiry: number = (new Date().getTime() / 1000) + parseInt(process.env.REFRESH_TOKEN_TIMEOUT_SECONDS!); 
             await db.query("INSERT INTO sessions VALUES (?, ?, ?)", [token, user_id, expiry])
 
         }catch(err){
@@ -149,18 +163,20 @@ const self = {
 
         try{
 
-            let row = await db.query("SELECT * FROM users WHERE email = ?", [email])
+            let row = await UserController.getUserByEmail(email);
 
-            if(row.results.length == 0)
+            if(Object.keys(row).length == 0)
                 return null;
             
-            let hash = row.results[0].password;
+            let hash = row.password!;
+            console.log(row.id);
+            
             let comparison = await bcrypt.compare(password, hash);
 
             if(!comparison)
                 return null;
             
-            return row.results;
+            return row;
 
         }catch(err){
 
