@@ -158,7 +158,7 @@ const self = {
 
             let row: User = await UserController.getUserByEmail(email) as User;
 
-            if(Object.keys(row).length == 0)
+            if(!row)
                 return null;
             
             let hash = row.password!;
