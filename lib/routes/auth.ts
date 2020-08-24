@@ -1,7 +1,7 @@
 import express from 'express';
 import xss = require('xss-filters');
 import AuthController, { JWTPayload } from "../controllers/AuthController";
-import UserController from "../controllers/UserController";
+import UserController, { User } from "../controllers/UserController";
 import { randomBytes } from "crypto";
 import HTTPError from "../HTTPError";
 import utils from "../utils"
@@ -54,7 +54,9 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
     
     // TODO: captcha
 
-    user = await AuthController.loginCheck(email, password);
+    user = await AuthController.loginCheck(email, password) as User;
+
+    console.log(user);
     
     if(user == null)
         return HTTPError.INVALID_CREDENTIALS.toResponse(res);    
@@ -64,7 +66,8 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
         name: user.name,
         surname: user.surname,
         email: user.email,
-        isAdmin: user.admin
+        isAdmin: user.admin,
+        unimoreId: user.unimoreId
     }
 
     try{

@@ -11,7 +11,8 @@ export interface JWTPayload{
     name: string,
     surname: string,
     email: string,
-    isAdmin: number
+    isAdmin: number,
+    unimoreId?: number 
 }
 export interface Session{
     refresh_token: string,
@@ -20,12 +21,6 @@ export interface Session{
 }
 
 const self = {
-
-    registerUser: async(username: string, password: string, email: string, unimore_id: string) => {
-
-        // todo
-
-    },
 
     truncateSessions: async(): Promise<any> => {
 
@@ -75,7 +70,8 @@ const self = {
                             name: user.name,
                             surname: user.surname,
                             email: user.email,
-                            isAdmin: user.admin
+                            isAdmin: user.admin,
+                            unimoreId: user.unimoreId
                         })
     
                         console.log(`new auth_token: ${auth_token}`);

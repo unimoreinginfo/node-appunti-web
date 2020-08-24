@@ -10,8 +10,8 @@ export interface User{
     email: string,
     admin: number,
     password?: string,
-    unimoreId: number,
-}
+    unimoreId?: number,
+} 
 
 export default {
     isRegistered: async (email: string): Promise<boolean> => {
@@ -76,6 +76,7 @@ export default {
         let user = (await db.query(`SELECT * FROM
                 ( SELECT 
                     id, 
+                    admin,
                     password,
                     AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                     AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
@@ -91,6 +92,7 @@ export default {
     getUsers: async function (): Promise<User[]> {
         let users = (await db.query(`SELECT  
                 id, 
+                admin,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                 AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
                 AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
