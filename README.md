@@ -7,6 +7,8 @@ https://beta.emilianomaccaferri.com
 
 * ~aes encryption in-db per i campi degli utenti (gdpr guyssss)~ done!
 * routes di utility
+* documentare le route di notes perbene
+* aggiungere controllo in DELETE /notes/:noteid
 
 # Come fare le cosine
 
