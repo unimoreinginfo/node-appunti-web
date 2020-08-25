@@ -10,10 +10,12 @@ export interface User{
     email: string,
     admin: number,
     password?: string,
-    unimoreId?: number,
-} 
+    unimore_id?: number,
+};
 
 export default {
+    hashPassword: async (password: string) => await bcrypt.hash(password, 8),
+
     isRegistered: async (email: string): Promise<boolean> => {
 
         return (await db.query(`
@@ -28,7 +30,6 @@ export default {
     },
 
     createUser: async function (name: string, surname: string, email: string, password: string, admin: number, unimoreId?: number) {
-
         return await db.query(`
             INSERT INTO users VALUES(
                 ?,
@@ -43,17 +44,43 @@ export default {
 
     },
 
-    updateUser: async function (userId: string, name: string, surname: string, password: string, admin: number, unimoreId?: number) {
+    updateUser: async function (user_id: string, name?: string, surname?: string, password?: string, unimore_id?: number, admin?: number) {
+        const params = {
+            name,
+            surname,
+            password: password ? await bcrypt.hash(password, 8) : undefined,
+            unimore_id,
+            admin
+        };
+        const values = {
+            name: `AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) })`,
+            surname: `AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) })`,
+            password: `?`,
+            unimore_id: `AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) })`,
+            admin: `?`
+        };
+        const updates: string[] = [];
+        for (const [key, val] of Object.entries(values)) {
+            if (params[key] === undefined) {
+                delete params[key];
+                continue;
+            }
+            updates.push(`${key} = ${val}`);
+        }
+        const query = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
+        const query_params = [...Object.values(params), user_id];
+        const result = await db.query(query, query_params);
+        return result.results.affectedRows > 0;
+    },
+
+    updateUserPassword: async function (user_id: string, new_password: string) {
         const result = await db.query(`
-            UPDATE users 
-                SET 
-                name = AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }), 
-                surname = AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }), 
-                password = ?,
-                admin = ?, 
-                unimore_id = AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }) 
-            WHERE id = ?`, 
-            [name, surname, await bcrypt.hash(password, 8), admin, unimoreId, userId
+            UPDATE users
+                SET password = ?
+                WHERE id = ?
+        `, [
+            await bcrypt.hash(new_password, 8),
+            user_id
         ]);
         return result.results.affectedRows > 0;
     },
@@ -62,10 +89,11 @@ export default {
         let users = (await db.query(`SELECT  
                 id, 
                 admin,
+                password,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                 AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
                 AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
-                AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimoreId
+                AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimore_id
                 FROM users WHERE id = ?
             `, [userId], true));
 
@@ -93,10 +121,11 @@ export default {
         let users = (await db.query(`SELECT  
                 id, 
                 admin,
+                password,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                 AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
                 AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
-                AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimoreId
+                AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimore_id
                 FROM users
             `, [], true));
 

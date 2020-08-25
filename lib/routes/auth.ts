@@ -62,13 +62,9 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
         return HTTPError.INVALID_CREDENTIALS.toResponse(res);    
 
     let payload: JWTPayload = {
-        userid: user.id,
-        name: user.name,
-        surname: user.surname,
-        email: user.email,
-        isAdmin: user.admin,
-        unimoreId: user.unimoreId
-    }
+        user_id: user.id,
+        is_admin: user.admin,
+    };
 
     try{
         
@@ -90,6 +86,14 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
 
     }
 
-})
+});
+
+router.get('/user', AuthController.middleware, async(req: express.Request, res: express.Response) => {
+    let me = JSON.parse(res.get('user'));
+    res.json({
+        success: true,
+        result: me
+    })
+});
 
 export = router;
