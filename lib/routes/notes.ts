@@ -8,51 +8,106 @@ import HTTPError from '../HTTPError';
 
 let router = express.Router();
 
-router.use(AuthController.middleware);
-
 router.get('/', async (req: express.Request, res: express.Response) => {
-    const subjectId = parseInt(req.query.subjectId as string);
-    const authorId = parseInt(req.query.authorId as string);
-    const orderBy = req.query.orderBy as string;
+    try{
 
-    res.send((await NoteController.getNotes(subjectId, authorId, orderBy)).results);
+        const subjectId = parseInt(req.query.subjectId as string);
+        const authorId = parseInt(req.query.authorId as string);
+        const orderBy = req.query.orderBy as string;
+        const translateSubjects: boolean = ((req.query.translateSubjects as string) || "").length > 0 ? true : false;    
+    
+        res.send((await NoteController.getNotes(subjectId, authorId, orderBy, translateSubjects)).results);
+
+    }catch(err){
+
+        console.log(err);
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+
+    }
 });
 
 router.get('/:noteId', async (req: express.Request, res: express.Response) => {
-    res.json(await NoteController.getNote(
-        parseInt(req.params.noteId)
-    ));
+    try{
+        let r = await NoteController.getNote(
+            req.params.noteId as string,
+            ((req.query.translateSubject as string) || "").length > 0 ? true : false
+        );
+
+        if(!r)
+            return HTTPError.NOT_FOUND.toResponse(res);
+
+        res.json(r);
+
+    }catch(err){
+        console.log(err);
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+    }
 });
 
-router.post('/:noteId', async (req: express.Request, res: express.Response) => {
-    res.json(await NoteController.updateNote(
-        parseInt(req.params.noteId),
-        req.body.title,
-        req.body.subjectId
-    ));
+router.post('/:noteId', AuthController.middleware, async (req: express.Request, res: express.Response) => {
+
+    try{
+
+        res.json(await NoteController.updateNote(
+            parseInt(req.params.noteId),
+            req.body.title,
+            req.body.subjectId
+        ));
+        
+    }catch(err){
+
+        console.log(err);
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+    
+    }
+
+    
 });
 
-router.post('/', utils.requiredParameters("POST", ["title", "subject_id"]), async (req, res: express.Response) => {
-    let me = JSON.parse(res.get('user'));
+router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["title", "subject_id"]), async (req, res: express.Response) => {
 
-    let file;
-    if ((req as any).files === undefined || (file = (req as any).files.notes) === undefined)
-        return HTTPError.missingParameters("notes").toResponse(res);
+    try{
 
-    let title = req.body.title;
-    let subject_id = parseInt(req.body.subject_id);
-    let subject = await SubjectController.getSubject(subject_id);
+        let me = JSON.parse(res.get('user'));
 
-    await NoteController.addNote(me.id, title, file, subject_id);
-    console.log(`${me.name} ${me.surname} uploaded "${title}" (${subject.name}) ~${file.size}`);
+        let file;
+        if ((req as any).files === undefined || (file = (req as any).files.notes) === undefined)
+            return HTTPError.missingParameters("notes").toResponse(res);
 
-    res.json({ success: true });
+        let title = req.body.title;
+        let subject_id = parseInt(req.body.subject_id);
+        let subject = await SubjectController.getSubject(subject_id);
+
+        console.log(file);
+        
+
+        await NoteController.addNotes(me.id, title, file, subject_id);
+        console.log(`${me.name} ${me.surname} uploaded "${title}" (${subject.name}) ~ ${file.size}`);
+
+        res.json({ success: true });
+
+    }catch(err){
+
+        console.log(err);
+        
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+
+    }
+
 });
 
-router.delete('/:noteId', async (req: express.Request, res: express.Response) => {
-    res.json(await NoteController.deleteNote(
-        parseInt(req.params.noteId)
-    ));
+router.delete('/:noteId', AuthController.middleware, async (req: express.Request, res: express.Response) => {
+    try{
+        
+        // todo: controllare che chi sta cancellando la nota sia autorizzato
+        await NoteController.deleteNote(req.params.noteId);
+        res.json({
+            success: true
+        });
+    }catch(err){
+        console.log(err);
+        HTTPError.GENERIC_ERROR.toResponse(res);
+    }
 });
 
 export = router;
