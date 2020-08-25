@@ -1,5 +1,11 @@
 import db from "../db";
 
+export interface Subject {
+    name: string,
+    professor_name: string,
+    professor_surname: string
+}
+
 export default {
     truncate: async function () {
         await db.query("DELETE FROM subjects");
@@ -12,6 +18,11 @@ export default {
         ]);
     },
     
+    getSubject: async function (subject_id: number): Promise<Subject> {
+        const result = await db.query("SELECT * FROM subjects WHERE id = ?", [subject_id]);
+        return result.results[0];
+    },
+
     getSubjects: async function () {
         return await db.query("SELECT * FROM subjects");
     }

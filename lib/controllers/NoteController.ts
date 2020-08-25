@@ -1,22 +1,22 @@
 import db from "../db";
 import path from "path";
 import crypto from "crypto"
+import { User } from "./UserController";
 
 export default {
-    addNote: async function (title: string, file: any, subjectId: number) {
-        const authorId = (await db.query("SELECT id FROM users LIMIT 1")).results[0].id; // TODO!!! real shit, use the id of the user currently logged instead.
+    addNote: async function (author_id: string, title: string, file: any, subjectId: number) {
+        const file_ext = path.extname(file.name);
+        const file_id = crypto.randomBytes(64).toString("hex");
+        const file_path = `./public/notes/${file_id}${file_ext}`;
+        const file_url = `/public/notes/${file_id}${file_ext}`
 
-        const fileExt = path.extname(file.name);
-        const fileId = crypto.randomBytes(64).toString("hex");
-        const filePath = `./public/notes/${fileId}${fileExt}`;
-        const fileUrl = `/public/notes/${fileId}${fileExt}`
+        file.mv(file_path);
 
-        file.mv(filePath);
-
-        return await db.query(
+        const result = await db.query(
             "INSERT INTO notes (title, original_filename, uploaded_at, storage_url, subject_id, author_id) VALUES (?, ?, ?, ?, ?, ?)",
-            [title, file.name, new Date(), fileUrl, subjectId, authorId]
+            [title, file.name, new Date(), file_url, subjectId, author_id]
         );
+        return result.results.affectedRows > 0;
     },
 
     updateNote: async function (noteId: number, title: string, subjectId: number) {
