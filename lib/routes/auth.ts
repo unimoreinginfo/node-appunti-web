@@ -89,11 +89,14 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
 });
 
 router.get('/user', AuthController.middleware, async(req: express.Request, res: express.Response) => {
+
     let me = JSON.parse(res.get('user'));
+
     res.json({
         success: true,
         result: me
     })
+    
 });
 
 export = router;

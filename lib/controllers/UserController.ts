@@ -89,6 +89,20 @@ export default {
         let users = (await db.query(`SELECT  
                 id, 
                 admin,
+                AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
+                AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
+                AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
+                AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimore_id
+                FROM users WHERE id = ?
+            `, [userId], true));
+
+        return users.results[0];
+    },
+
+    getUserFull: async function (userId: string): Promise<User> {
+        let users = (await db.query(`SELECT  
+                id, 
+                admin,
                 password,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                 AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  

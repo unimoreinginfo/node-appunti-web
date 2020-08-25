@@ -23,6 +23,7 @@ const self = {
     },
 
     middleware: async (req: Request, res: Response, next: NextFunction) => {
+
         if (!req.headers.authorization)
             return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
@@ -31,9 +32,6 @@ const self = {
         try {
             let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
             let user = await UserController.getUser(jwt_payload.user_id);
-
-            //console.log("jwt_payload", jwt_payload);
-            //console.log("user", user);
 
             res.set('user', JSON.stringify(user));
 
@@ -45,6 +43,7 @@ const self = {
             let refresh_token = req.cookies.ref_token;
             self.getSession(refresh_token)
                 .then(async (session) => {
+                    
                     if (!refresh_token || !session || !Object.keys(session).length)
                         return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
@@ -58,8 +57,6 @@ const self = {
 
                         let user: User = await UserController.getUser(session.user_id) as User;
                         let auth_token = await self.signJWT({ user_id: user.id, is_admin: user.admin })
-
-                        console.log(`new auth_token: ${auth_token}`);
 
                         res.header('Authorization', `Bearer ${auth_token}`);
                         res.set('user', JSON.stringify(user));
