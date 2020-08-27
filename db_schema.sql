@@ -23,9 +23,8 @@ DROP TABLE IF EXISTS `notes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `notes` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` varchar(128) NOT NULL,
   `title` varchar(1024) DEFAULT NULL,
-  `original_filename` varchar(256) DEFAULT NULL,
   `uploaded_at` datetime DEFAULT NULL,
   `storage_url` varchar(256) NOT NULL,
   `subject_id` int(11) DEFAULT NULL,
@@ -35,18 +34,9 @@ CREATE TABLE `notes` (
   KEY `subject_id` (`subject_id`),
   KEY `author_id` (`author_id`),
   CONSTRAINT `notes_ibfk_1` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`),
-  CONSTRAINT `notes_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`)
+  CONSTRAINT `notes_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notes`
---
-
-LOCK TABLES `notes` WRITE;
-/*!40000 ALTER TABLE `notes` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notes` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `sessions`
@@ -61,19 +51,10 @@ CREATE TABLE `sessions` (
   `expiry` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`refresh_token`,`user_id`),
   UNIQUE KEY `refresh_token` (`refresh_token`),
-  KEY `fk_user_id` (`user_id`),
-  CONSTRAINT `fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sessions`
---
-
-LOCK TABLES `sessions` WRITE;
-/*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
-/*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `subjects`
@@ -90,15 +71,6 @@ CREATE TABLE `subjects` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `subjects`
---
-
-LOCK TABLES `subjects` WRITE;
-/*!40000 ALTER TABLE `subjects` DISABLE KEYS */;
-/*!40000 ALTER TABLE `subjects` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `users`
@@ -119,15 +91,6 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -138,4 +101,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-08-21 17:55:53
+-- Dump completed on 2020-08-27 17:06:52

@@ -145,5 +145,10 @@ export default {
 
         return users.results;
         
+    },
+
+    deleteUser: async function(user_id: string) {
+        let result = await db.query(`DELETE FROM users WHERE id=?`, [user_id]);
+        return result.results.affectedRows > 0;
     }
 }

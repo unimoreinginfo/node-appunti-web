@@ -86,4 +86,16 @@ router.post('/:user_id/password',
         return res.json({ success: true });
     });
 
+router.delete('/:user_id', [AuthController.middleware], async (req: express.Request, res: express.Response) => {
+    let me = JSON.parse(res.get('user'));
+    if (!me.admin) 
+        return new HTTPError("unauthorized", 401).toResponse(res);
+
+    let success = await UserController.deleteUser(req.params.user_id);
+    if (!success)
+        return new HTTPError("user_not_found", 400).toResponse(res);
+
+    res.json({ success });
+});
+
 export = router;
