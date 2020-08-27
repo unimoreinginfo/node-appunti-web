@@ -7,8 +7,6 @@ import bcrypt from "bcryptjs"
 
 let router = express.Router();
 
-router.use(AuthController.middleware);
-
 const userManagementMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     let me = JSON.parse(res.get('user'));
     let user_id = req.params.user_id;
@@ -41,7 +39,7 @@ router.get('/:userId', async (req: express.Request, res: express.Response) => {
 });
 
 router.post('/:user_id',
-    userManagementMiddleware,
+    [AuthController.middleware, userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
         let me = JSON.parse(res.get('user'));
         let user_id = req.params.user_id;
@@ -65,7 +63,7 @@ router.post('/:user_id',
     });
 
 router.post('/:user_id/password',
-    [utils.requiredParameters("POST", ["new_password"]), userManagementMiddleware],
+    [AuthController.middleware, utils.requiredParameters("POST", ["new_password"]), userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
         let me = JSON.parse(res.get('user'));
         let user_id = req.params.user_id;
