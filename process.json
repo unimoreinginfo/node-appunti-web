@@ -1,7 +1,7 @@
 {
     "script": "./build/app.js",
     "watch": true,
-    "ignore_watch": ["./data", "./assets"],
+    "ignore_watch": ["./public", "./assets"],
     "watch_options": {
         "followSymlinks": false
     },

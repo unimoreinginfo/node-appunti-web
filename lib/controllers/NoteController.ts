@@ -1,22 +1,40 @@
 import db from "../db";
 import path from "path";
 import crypto from "crypto"
+import { readdir, rmdirSync } from 'fs-extra';
 import { User } from "./UserController";
 
-export default {
-    addNote: async function (author_id: string, title: string, file: any, subjectId: number) {
-        const file_ext = path.extname(file.name);
-        const file_id = crypto.randomBytes(64).toString("hex");
-        const file_path = `./public/notes/${file_id}${file_ext}`;
-        const file_url = `/public/notes/${file_id}${file_ext}`
+const self = {
 
+    createFile: async(file: any, title: string, file_id: string, subjectId: number, author_id: string) => {
+
+        const file_path = `./public/notes/${file_id}/${file.name}`;
         file.mv(file_path);
+        return file_path;
+    
+    },
 
-        const result = await db.query(
-            "INSERT INTO notes (title, original_filename, uploaded_at, storage_url, subject_id, author_id) VALUES (?, ?, ?, ?, ?, ?)",
-            [title, file.name, new Date(), file_url, subjectId, author_id]
+    addNotes: async (author_id: string, title: string, file: any | any[], subjectId: number) => {
+        
+        let stuff = new Array();
+        let jobs = new Array();
+        let notes_id = crypto.randomBytes(64).toString('hex');
+
+        if(!(file instanceof Array))
+            stuff.push(file);
+        else
+            stuff = file.map(f => { return f });
+        
+        stuff.forEach(f => jobs.push(self.createFile(f, title, notes_id, subjectId, author_id)));
+        let results = await Promise.all(jobs);
+
+        const q = await db.query(
+            "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?)",
+            [notes_id, title, new Date(), `/public/notes/${notes_id}`, subjectId, author_id]
         );
-        return result.results.affectedRows > 0;
+
+        return q.results.affectedRows > 0;        
+
     },
 
     updateNote: async function (noteId: number, title: string, subjectId: number) {
@@ -26,13 +44,19 @@ export default {
         );
     },
 
-    getNote: async function (id: number) {
-        const res = (await db.query("SELECT * FROM notes WHERE id=?", id)).results;
-        return res.length > 0 ? res[0] : null;
+    getNote: async function (id: string, translateSubject: boolean) {
+        const result = (await db.query(`SELECT notes.id note_id, notes.title, notes.uploaded_at, notes.storage_url, notes.subject_id, notes.author_id ${translateSubject ? ", subjects.name subject_name" : ""} FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} WHERE notes.id=?`, id)).results;
+        
+        if(!result.length)
+            return null;
+
+        let files = await readdir(`./public/notes/${id}`);
+
+        return result.length > 0 ? { result, files } : null;
     },
 
-    getNotes: async function (subjectId?: number, authorId?: number, orderBy?: string) {
-        let query = "SELECT * FROM notes";
+    getNotes: async function (subjectId?: number, authorId?: number, orderBy?: string, translateSubjects?: boolean) {
+        let query = `SELECT notes.id note_id, notes.title, notes.uploaded_at, notes.storage_url, notes.subject_id, notes.author_id ${translateSubjects ? ", subjects.name subject_name" : ""} FROM notes`;
         let params: any[] = [];
         let cond: string[] = [];
 
@@ -55,10 +79,24 @@ export default {
             params.push(orderBy);
         }
 
+        if(translateSubjects){
+            query += `
+                JOIN subjects ON notes.subject_id = subjects.id
+            `
+        }
+
         return await db.query(query, params);
     },
 
-    deleteNote: async function (id: number) {
-        return await db.query("DELETE FROM notes WHERE id=?", id);
+    deleteNote: async function (id: string) {
+        let result = await db.query("DELETE FROM notes WHERE id = ?", id);
+        console.log(id, result);
+        
+        if(result.results.affectedRows > 0)
+            rmdirSync(`./public/notes/${id}`, { recursive: true })
+
+        return result.affectedRows > 0;
     }
 }
+
+export = self;
