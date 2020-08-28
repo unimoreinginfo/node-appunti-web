@@ -99,11 +99,9 @@ const self = {
 
         */
 
-        let s = (start - 1) * 10; // pagine di 10 in 10
-
-        console.log(s, s + 10);
+        let s = (start - 1) * 10; // pagine di 10 in 10        
+        console.log(start, subjectId, authorId, orderBy, translateSubjects);
         
-
         // non abbiamo mysql 8 quindi non esiste row_number(), vabbe
         let query = `
 
@@ -117,41 +115,29 @@ const self = {
                 notes.storage_url, 
                 notes.subject_id, 
                 notes.author_id ${translateSubjects ? ", subjects.name subject_name" : ""} 
-            FROM notes ) res
-            WHERE res.number > ? AND res.number <= ?
-
+            FROM notes ${translateSubjects ? "JOIN subjects ON notes.subject_id = subjects.id" : ""}  
+                WHERE ${subjectId ? "notes.subject_id = ? AND" : ""}
+                ${authorId ? "notes.author_id = ? AND" : "" }
+                1 = 1
+            ) res
+            WHERE 
+            res.number > ? 
+            AND res.number <= ?
+            ${orderBy ? ((orderBy.toLowerCase() === "asc" || orderBy.toLowerCase() === "desc") ? "ORDER BY res.title ?" : ""): ""}
         `;
 
         let params: any[] = [];
         let cond: string[] = [];
 
-        if (subjectId) {
-            cond.push("subject_id=?");
-            params.push(subjectId);
-        }
-
-        if (authorId) {
-            cond.push("author_id=?");
-            params.push(authorId);
-        }
-
-        if (cond.length > 0) {
-            query += " WHERE " + cond.join(" AND ");
-        }
-
-        if (orderBy && (orderBy.toLowerCase() === "asc" || orderBy.toLowerCase() === "desc")) {
-            query += " ORDER BY title " + orderBy;
-            params.push(orderBy);
-        }
-
-        if(translateSubjects){
-            query += `
-                JOIN subjects ON notes.subject_id = subjects.id
-            `
-        }
+        if (subjectId) params.push(subjectId);
+        if (authorId) params.push(authorId);
+        if (orderBy) params.push(orderBy);
 
         params.push(s);
         params.push(s + 10)
+        params.push(orderBy)
+
+        console.log(query, `[${params}]`);
 
         return await db.query(query, params);
     },

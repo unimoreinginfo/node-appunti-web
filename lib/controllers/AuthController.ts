@@ -28,22 +28,38 @@ const self = {
             return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
         let token = req.headers.authorization.split("Bearer ")[1];
+        let refresh_token = req.cookies.ref_token;
+        let user;
 
         try {
+
             let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
+            let session = await self.getSession(refresh_token);
+
+            if(session.user_id != jwt_payload.user_id)
+                return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+
             let user = await UserController.getUser(jwt_payload.user_id);
 
             res.set('user', JSON.stringify(user));
 
             next();
         } catch (err) {
+
             if (err.message === 'jwt malformed') // lol non c'è TokenMalformedException
                 return HTTPError.MALFORMED_CREDENTIALS.toResponse(res);
 
-            let refresh_token = req.cookies.ref_token;
             self.getSession(refresh_token)
                 .then(async (session) => {
-                    
+
+                    let decoded = await jwt.decode(token, { algorithm: 'HS256' });
+
+                    console.log(session.user_id, decoded.user_id);
+                    if(session.user_id != decoded.user_id)
+                        return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+
+                    user = await UserController.getUser(session.user_id) as User;
+
                     if (!refresh_token || !session || !Object.keys(session).length)
                         return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
@@ -54,10 +70,10 @@ const self = {
 
                     if (err instanceof TokenExpiredError) {
                         console.log("refreshing auth token for %s", session.user_id);
-
-                        let user: User = await UserController.getUser(session.user_id) as User;
+                        
                         let auth_token = await self.signJWT({ user_id: user.id, is_admin: user.admin })
-
+                        console.log(auth_token);
+                        
                         res.header('Authorization', `Bearer ${auth_token}`);
                         res.set('user', JSON.stringify(user));
                     }
