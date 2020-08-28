@@ -165,7 +165,7 @@ Searches by title
 
 ##### Query parameters
 
-| Name | Type | Description | Required | Default
+| Name | Type | Description | Required
 | ---- | ---- | ----------- | --------
 | q | `string` | Search query | Yes
 
