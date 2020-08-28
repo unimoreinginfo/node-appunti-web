@@ -32,11 +32,6 @@ Updates the specified notes.
 
 ### `GET /`
 
-##### Query parameters
-| Name | Type | Description | Required
-| ---- | ---- | ----------- | --------
-| page | `number` | Page to show | No
-
 ##### Description
 
 Gets all the notes uploaded 10 by 10, with optional filters.
@@ -45,6 +40,7 @@ Gets all the notes uploaded 10 by 10, with optional filters.
 
 | Name | Type | Description | Required 
 | ---- | ---- | ----------- | --------
+| page | `number` | Page to show | No
 | subject_id | `number` | The ID of the subject of the notes to get. | No
 | author_id | `string` | Note author's ID | No
 | order_by | `"asc" or "desc"`| Defines the way notes will be ordered (always by title). | No
