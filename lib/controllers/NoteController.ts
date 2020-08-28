@@ -3,9 +3,43 @@ import path from "path";
 import crypto from "crypto"
 import { readdir, rmdirSync } from 'fs-extra';
 import { User } from "./UserController";
+import redis from '../redis'
 
 const self = {
 
+    search: async(query_string: string): Promise<string | null | Error> => {
+
+        try{
+
+            let cached = await redis.get(query_string);
+            if(cached){
+                console.log(`returning cached result for query: ${query_string}`);
+                return cached;
+            }
+
+            let query = await db.query(`
+
+                SELECT * FROM notes WHERE title LIKE ?
+
+            `, [`%${query_string}%`]);
+
+            if(!query.results.length) 
+                return null;
+
+            let stringified = JSON.stringify(query.results) as string;
+            await redis.set(query_string, stringified);
+
+            return stringified;
+
+        }catch(err){
+
+            console.log(err);
+            
+            return Promise.reject(err);
+
+        }
+
+    },
     createFile: async(file: any, title: string, file_id: string, subjectId: number, author_id: string) => {
 
         const file_path = `./public/notes/${file_id}/${file.name}`;

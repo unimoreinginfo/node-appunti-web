@@ -26,6 +26,24 @@ router.get('/', async (req: express.Request, res: express.Response) => {
     }
 });
 
+router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri in req.query al posto che in req.params*/, ["q"]), async(req: express.Request, res: express.Response) => {
+
+    const query = req.query.q! as string;
+    // todo (redis)
+    try{
+        let result = await NoteController.search(query);
+        let parsed = JSON.parse(result as string);
+        if(!parsed)
+            return res.json([]);
+
+        res.json(parsed);
+
+    }catch(err){
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+    }
+
+})  
+
 router.get('/:noteId', async (req: express.Request, res: express.Response) => {
     try{
         let r = await NoteController.getNote(

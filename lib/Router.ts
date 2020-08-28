@@ -51,7 +51,7 @@ export default class Router{
         this.#app.use('/notes', require("./routes/notes"));
         this.#app.use('/users', require("./routes/users"));
         this.#app.use('/auth', require("./routes/auth"));
-
+        
         this.#app.listen(process.env.PORT);
 
         this.#app.all('*', (req: express.Request, res: express.Response) => {

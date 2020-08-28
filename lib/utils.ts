@@ -6,7 +6,8 @@ export default {
 
         return function (req, res, next) {
 
-            const bodyType = ((type == "GET") ? req.params : req.body);
+            let bodyType = ((type == "GET") ? req.params : (type == "GETq") ? req.query : req.body);
+                
             let missing = new Array();
 
             for (var i = 0; i < params.length; i++) {
