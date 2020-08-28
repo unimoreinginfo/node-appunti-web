@@ -19,7 +19,7 @@ There isn't any file-type check, thus notes can be of any kind of format (pdf, i
 ##### Description
 Deletes the specified notes.
 
-### `POST /notes/:noteId`
+### `POST /notes/:noteId` (WIP NON USARE)
 
 ##### Description
 Updates the specified notes. 
