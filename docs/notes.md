@@ -1,6 +1,6 @@
 ## Base endpoint: `/notes`
 
-### `POST /notes/`
+### `POST /`
 
 ##### Description
 
@@ -14,12 +14,12 @@ There isn't any file-type check, thus notes can be of any kind of format (pdf, i
 | title | `string` | The title of the notes file that will be displayed. | Yes
 | subject_id | `number` | The ID of the subject these notes refer to. | Yes
 
-### `DELETE /notes/:id`
+### `DELETE /:id`
 
 ##### Description
 Deletes the specified notes.
 
-### `POST /notes/:noteId` (WIP NON USARE)
+### `POST /:noteId` (WIP NON USARE)
 
 ##### Description
 Updates the specified notes. 
@@ -30,7 +30,12 @@ Updates the specified notes.
 | title | `string` | The new title of the notes. | Yes
 | subject_id | `number` | The ID of the new subject. | Yes
 
-### `GET /notes/:page`
+### `GET /`
+
+##### Query parameters
+| Name | Type | Description | Required
+| ---- | ---- | ----------- | --------
+| page | `number` | Page to show | No
 
 ##### Description
 
