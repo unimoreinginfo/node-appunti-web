@@ -1,4 +1,4 @@
-import db from "../db";
+import db, { core } from "../db";
 import path from "path";
 import crypto from "crypto"
 import { readdir, rmdirSync } from 'fs-extra';
@@ -42,7 +42,7 @@ const self = {
     },
     createFile: async(file: any, title: string, file_id: string, subjectId: number, author_id: string) => {
 
-        const file_path = `./public/notes/${file_id}/${file.name}`;
+        const file_path = `./public/notes/${subjectId}/${file_id}/${file.name}`;
         file.mv(file_path);
         return file_path;
     
@@ -64,7 +64,7 @@ const self = {
 
         const q = await db.query(
             "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?)",
-            [notes_id, title, new Date(), `/public/notes/${notes_id}`, subjectId, author_id]
+            [notes_id, title, new Date(), `/public/notes/${subjectId}/${notes_id}`, subjectId, author_id]
         );
 
         return q.results.affectedRows > 0;        
@@ -79,12 +79,23 @@ const self = {
     },
 
     getNote: async function (id: string, subject_id: number, translateSubject: boolean) {
-        const result = (await db.query(`SELECT notes.id note_id, notes.title, notes.uploaded_at, notes.storage_url, notes.subject_id, notes.author_id ${translateSubject ? ", subjects.name subject_name" : ""} FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} WHERE notes.id = ? AND notes.subject_id = ?`, [id, subject_id])).results;
+        const result = (await db.query(`
+            SELECT 
+                notes.id note_id, 
+                notes.title, 
+                notes.uploaded_at, 
+                notes.storage_url, 
+                notes.subject_id, 
+                notes.author_id 
+                ${translateSubject ? ", subjects.name subject_name" : ""} 
+            FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} 
+            WHERE notes.id = ? 
+            AND notes.subject_id = ?`, [id, subject_id])).results;
         
         if(!result.length)
             return null;
 
-        let files = await readdir(`./public/notes/${id}`);
+        let files = await readdir(`./public/notes/${subject_id}/${id}`);
 
         return result.length > 0 ? { result, files } : null;
     },
@@ -100,7 +111,6 @@ const self = {
         */
 
         let s = (start - 1) * 10; // pagine di 10 in 10        
-        console.log(start, subjectId, authorId, orderBy, translateSubjects);
         
         // non abbiamo mysql 8 quindi non esiste row_number(), vabbe
         let query = `
@@ -123,7 +133,7 @@ const self = {
             WHERE 
             res.number > ? 
             AND res.number <= ?
-            ${orderBy ? ((orderBy.toLowerCase() === "asc" || orderBy.toLowerCase() === "desc") ? "ORDER BY res.title ?" : ""): ""}
+            ${orderBy ? ((orderBy.toLowerCase() === "asc" || orderBy.toLowerCase() === "desc") ? `ORDER BY res.title ${orderBy}` : ""): ""}
         `;
 
         let params: any[] = [];
@@ -131,23 +141,24 @@ const self = {
 
         if (subjectId) params.push(subjectId);
         if (authorId) params.push(authorId);
-        if (orderBy) params.push(orderBy);
 
         params.push(s);
         params.push(s + 10)
-        params.push(orderBy)
 
-        console.log(query, `[${params}]`);
+        console.log(query);
 
         return await db.query(query, params);
     },
 
-    deleteNote: async function (id: string) {
-        let result = await db.query("DELETE FROM notes WHERE id = ?", id);
+    deleteNote: async function (id: string, subject_id: number) {
+
+        console.log(id, subject_id);
+        
+        let result = await db.query("DELETE FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);
         console.log(id, result);
         
         if(result.results.affectedRows > 0)
-            rmdirSync(`./public/notes/${id}`, { recursive: true })
+            rmdirSync(`./public/notes/${subject_id}/${id}`, { recursive: true })
 
         return result.affectedRows > 0;
     }

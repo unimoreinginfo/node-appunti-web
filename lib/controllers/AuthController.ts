@@ -54,7 +54,6 @@ const self = {
 
                     let decoded = await jwt.decode(token, { algorithm: 'HS256' });
 
-                    console.log(session.user_id, decoded.user_id);
                     if(session.user_id != decoded.user_id)
                         return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 

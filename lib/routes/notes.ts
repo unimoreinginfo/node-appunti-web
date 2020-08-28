@@ -8,33 +8,15 @@ import HTTPError from '../HTTPError';
 
 let router = express.Router();
 
+
 router.get('/', async (req: express.Request, res: express.Response) => {
     try{
 
-        const subjectId = parseInt(req.query.subjectId as string);
-        const authorId = parseInt(req.query.authorId as string);
-        const orderBy = req.query.orderBy as string;
-        const translateSubjects: boolean = ((req.query.translateSubjects as string) || "").length > 0 ? true : false; 
-        const start = 1;
-    
-        res.send((await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1]); // non ho capito
-
-    }catch(err){
-
-        console.log(err);
-        return HTTPError.GENERIC_ERROR.toResponse(res);
-
-    }
-});
-
-router.get('/:page', async (req: express.Request, res: express.Response) => {
-    try{
-
-        const subjectId = parseInt(req.query.subjectId as string);
-        const authorId = parseInt(req.query.authorId as string);
-        const orderBy = req.query.orderBy as string;
-        const translateSubjects: boolean = ((req.query.translateSubjects as string) || "").length > 0 ? true : false; 
-        const start = parseInt(req.params.page || "1");
+        const subjectId = parseInt(req.query.subject_id as string);
+        const authorId = parseInt(req.query.author_id as string);
+        const orderBy = req.query.order_by as string;
+        const translateSubjects: boolean = ((req.query.translate_subjects as string) || "").length > 0 ? true : false; 
+        const start = parseInt(req.query.page as string || "1");
     
         res.send((await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1]); // non ho capito
 
@@ -49,7 +31,9 @@ router.get('/:page', async (req: express.Request, res: express.Response) => {
 router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri in req.query al posto che in req.params*/, ["q"]), async(req: express.Request, res: express.Response) => {
 
     const query = req.query.q! as string;
-    // todo (redis)
+
+    console.log(query);
+
     try{
         let result = await NoteController.search(query);
         let parsed = JSON.parse(result as string);
@@ -62,36 +46,17 @@ router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri
         return HTTPError.GENERIC_ERROR.toResponse(res);
     }
 
-})  
-
-router.get('/:subjectId/:noteId', async (req: express.Request, res: express.Response) => {
-    try{
-        let r = await NoteController.getNote(
-            req.params.noteId as string,
-            parseInt(req.params.subjectId),
-            ((req.query.translateSubject as string) || "").length > 0 ? true : false
-        );
-
-        if(!r)
-            return HTTPError.NOT_FOUND.toResponse(res);
-
-        res.json(r);
-
-    }catch(err){
-        console.log(err);
-        return HTTPError.GENERIC_ERROR.toResponse(res);
-    }
-});
+})
 
 router.post('/:noteId', AuthController.middleware, async (req: express.Request, res: express.Response) => {
 
     try{
 
         res.json(await NoteController.updateNote(
-            req.params.noteId as string,
+            req.params.note_id as string,
             req.body.title as string,
-            parseInt(req.body.subjectId),
-            parseInt(req.body.oldSubjectId)
+            parseInt(req.body.subject_id),
+            parseInt(req.body.old_subject_id)
         ));
         
     }catch(err){
@@ -136,11 +101,30 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
 
 });
 
-router.delete('/:noteId', AuthController.middleware, async (req: express.Request, res: express.Response) => {
+router.get('/:subject_id/:note_id', async (req: express.Request, res: express.Response) => {
+    try{
+        let r = await NoteController.getNote(
+            req.params.note_id as string,
+            parseInt(req.params.subject_id),
+            ((req.query.translate_subjects as string) || "").length > 0 ? true : false
+        );
+
+        if(!r)
+            return HTTPError.NOT_FOUND.toResponse(res);
+
+        res.json(r);
+
+    }catch(err){
+        console.log(err);
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+    }
+});
+
+router.delete('/:subject_id/:note_id', AuthController.middleware, async (req: express.Request, res: express.Response) => {
     try{
         
         // todo: controllare che chi sta cancellando la nota sia autorizzato
-        await NoteController.deleteNote(req.params.noteId);
+        await NoteController.deleteNote(req.params.note_id, parseInt(req.params.subject_id));
         res.json({
             success: true
         });
