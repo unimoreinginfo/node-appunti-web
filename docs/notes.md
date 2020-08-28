@@ -198,8 +198,7 @@ None
       "storage_url": "/public/notes/035fef01806ddfb9faa6c315e1089133eda2f11c49ad7aaccebc5d5b34a8b77784fd4e1fae8798bf5c85fcd57757a8da79217d296169d936a070aa812c9aa88e",
       "subject_id": 3,
       "author_id": "a55746552a3404ad989cd4249e6accd7d357b3309952fdf97620092cda32cb81"
-    }
-  ],
+    },
   "files": [
     "01_Risultati Scritto del 07.01.2020.pdf"
   ]
