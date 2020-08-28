@@ -1,6 +1,6 @@
 ## Base endpoint: `/notes`
 
-### `GET /notes/:noteId`
+### `GET /notes/:id`
 
 ##### Description
 Gets information about the specified notes.
@@ -30,9 +30,9 @@ There isn't any file-type check, thus notes can be of any kind of format (pdf, i
 | ---- | ---- | ----------- | --------
 | notes | `file` | The notes file to upload. | Yes
 | title | `string` | The title of the notes file that will be displayed. | Yes
-| subjectId | `number` | The ID of the subject these notes refer to. | Yes
+| subject_id | `number` | The ID of the subject these notes refer to. | Yes
 
-### `DELETE /notes/:noteId`
+### `DELETE /notes/:id`
 
 ##### Description
 Deletes the specified notes.
@@ -46,21 +46,21 @@ Updates the specified notes.
 | Name | Type | Description | Required
 | ---- | ---- | ----------- | --------
 | title | `string` | The new title of the notes. | Yes
-| subjectId | `number` | The ID of the new subject. | Yes
+| subject_id | `number` | The ID of the new subject. | Yes
 
-### `GET /notes/`
+### `GET /notes/:page`
 
 ##### Description
 
-Gets all the notes uploaded, with optional filters.
+Gets all the notes uploaded 10 by 10, with optional filters.
 
 ##### Query parameters
 
-| Name | Type | Description | Required
+| Name | Type | Description | Required | Default
 | ---- | ---- | ----------- | --------
-| subjectId | `number` | The ID of the subject of the notes to get. | No
-| authorId | `string` | The ID of the author of the notes to get. | No
-| authorId | `"asc" or "desc"`| Defines the way notes will be ordered (always by title). | No
+| subject_id | `number` | The ID of the subject of the notes to get. | No
+| author_id | `string` | Note author's ID | No
+| order_by | `"asc" or "desc"`| Defines the way notes will be ordered (always by title). | No
 
 ##### Response
 ```json
@@ -84,4 +84,52 @@ Gets all the notes uploaded, with optional filters.
         "author_id": 11
     }
 ]
+```
+### `GET /notes/search`
+
+##### Description
+
+Searches by title
+
+##### Query parameters
+
+| Name | Type | Description | Required | Default
+| ---- | ---- | ----------- | --------
+| q | `string` | Search query | Yes
+
+##### Response
+```json
+[
+    {
+	    "id": "035fef01806ddfb9faa6c315e1089133eda2f11c49ad7aaccebc5d5b34a8b77784fd4e1fae8798bf5c85fcd57757a8da79217d296169d936a070aa812c9aa88e",
+	    "title": "risultati scritto lesssssgooo",
+	    "subject_id": 3
+    }
+]
+```
+### `GET /:subject_id/:note_id`
+
+##### Description
+
+Gets info about a certain note (identified by subject_id and note_id)
+
+##### Query parameters
+None
+##### Response
+```json
+{
+  "result": 
+    {
+      "note_id": "035fef01806ddfb9faa6c315e1089133eda2f11c49ad7aaccebc5d5b34a8b77784fd4e1fae8798bf5c85fcd57757a8da79217d296169d936a070aa812c9aa88e",
+      "title": "risultati scritto lesssssgooo",
+      "uploaded_at": "2020-08-28T17:23:32.000Z",
+      "storage_url": "/public/notes/035fef01806ddfb9faa6c315e1089133eda2f11c49ad7aaccebc5d5b34a8b77784fd4e1fae8798bf5c85fcd57757a8da79217d296169d936a070aa812c9aa88e",
+      "subject_id": 3,
+      "author_id": "a55746552a3404ad989cd4249e6accd7d357b3309952fdf97620092cda32cb81"
+    }
+  ],
+  "files": [
+    "01_Risultati Scritto del 07.01.2020.pdf"
+  ]
+}
 ```
