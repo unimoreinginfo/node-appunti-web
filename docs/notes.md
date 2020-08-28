@@ -56,7 +56,7 @@ Gets all the notes uploaded 10 by 10, with optional filters.
 
 ##### Query parameters
 
-| Name | Type | Description | Required | Default
+| Name | Type | Description | Required 
 | ---- | ---- | ----------- | --------
 | subject_id | `number` | The ID of the subject of the notes to get. | No
 | author_id | `string` | Note author's ID | No
