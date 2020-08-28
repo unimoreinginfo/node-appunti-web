@@ -44,10 +44,11 @@ router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri
 
 })  
 
-router.get('/:noteId', async (req: express.Request, res: express.Response) => {
+router.get('/:subjectId/:noteId', async (req: express.Request, res: express.Response) => {
     try{
         let r = await NoteController.getNote(
             req.params.noteId as string,
+            parseInt(req.params.subjectId),
             ((req.query.translateSubject as string) || "").length > 0 ? true : false
         );
 
@@ -67,9 +68,10 @@ router.post('/:noteId', AuthController.middleware, async (req: express.Request, 
     try{
 
         res.json(await NoteController.updateNote(
-            parseInt(req.params.noteId),
-            req.body.title,
-            req.body.subjectId
+            req.params.noteId as string,
+            req.body.title as string,
+            parseInt(req.body.subjectId),
+            parseInt(req.body.oldSubjectId)
         ));
         
     }catch(err){

@@ -19,7 +19,7 @@ const self = {
 
             let query = await db.query(`
 
-                SELECT id,title FROM notes WHERE title LIKE ?
+                SELECT id, title, subject_id FROM notes WHERE title LIKE ?
 
             `, [`%${query_string}%`]); // output ridotto, devo tenere sta roba in RAM, quindi...
 
@@ -71,15 +71,15 @@ const self = {
 
     },
 
-    updateNote: async function (noteId: number, title: string, subjectId: number) {
+    updateNote: async function (noteId: string, title: string, oldSubjectId: number, subjectId: number) {
         return await db.query(
-            "UPDATE notes SET title=?, subject_id=? WHERE id=?",
-            [title, subjectId, noteId]
+            "UPDATE notes SET title = ?, subject_id = ? WHERE id = ? AND subject_id = ?",
+            [title, subjectId, noteId, oldSubjectId]
         );
     },
 
-    getNote: async function (id: string, translateSubject: boolean) {
-        const result = (await db.query(`SELECT notes.id note_id, notes.title, notes.uploaded_at, notes.storage_url, notes.subject_id, notes.author_id ${translateSubject ? ", subjects.name subject_name" : ""} FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} WHERE notes.id=?`, id)).results;
+    getNote: async function (id: string, subject_id: number, translateSubject: boolean) {
+        const result = (await db.query(`SELECT notes.id note_id, notes.title, notes.uploaded_at, notes.storage_url, notes.subject_id, notes.author_id ${translateSubject ? ", subjects.name subject_name" : ""} FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} WHERE notes.id = ? AND notes.subject_id = ?`, id)).results;
         
         if(!result.length)
             return null;
