@@ -17,12 +17,12 @@ class RClient{
 
     }
 
-    get(key: string): Promise<string | null | Error> {
+    get(key_type: KeyType, key: string): Promise<string | null | Error> {
 
         return new Promise(
             (resolve, reject) => {
 
-                this.#client.get(key, (err, res) => {
+                this.#client.get(`${key_type}-${key}`, (err, res) => {
 
                     if(err)
                         return reject(err);
@@ -36,12 +36,12 @@ class RClient{
 
     }
 
-    set(key: string, value: string): Promise<string | null | Error> {
+    set(key_type: KeyType, key: string, value: string): Promise<string | null | Error> {
 
         return new Promise(
             (resolve, reject) => {
 
-                this.#client.set(key, value, 'EX', parseInt(process.env.REDIS_KEY_EXPIRE_TIME_SECONDS || "1800"), (err, res) => {
+                this.#client.set(`${key_type}-${key}`, value, 'EX', parseInt(process.env.REDIS_KEY_EXPIRE_TIME_SECONDS || "1800"), (err, res) => {
 
                     if(err)
                         return reject(err);
@@ -58,3 +58,4 @@ class RClient{
 }
 
 export default new RClient(parseInt(process.env.REDIS_PORT || "6379"));
+export type KeyType = "notes" | "subjects" | "students"

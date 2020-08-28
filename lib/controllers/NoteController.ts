@@ -11,7 +11,7 @@ const self = {
 
         try{
 
-            let cached = await redis.get(query_string);
+            let cached = await redis.get('notes', query_string);
             if(cached){
                 console.log(`returning cached result for query: ${query_string}`);
                 return cached;
@@ -19,15 +19,15 @@ const self = {
 
             let query = await db.query(`
 
-                SELECT * FROM notes WHERE title LIKE ?
+                SELECT id,title FROM notes WHERE title LIKE ?
 
-            `, [`%${query_string}%`]);
+            `, [`%${query_string}%`]); // output ridotto, devo tenere sta roba in RAM, quindi...
 
             if(!query.results.length) 
                 return null;
 
             let stringified = JSON.stringify(query.results) as string;
-            await redis.set(query_string, stringified);
+            await redis.set('notes', query_string, stringified);
 
             return stringified;
 
