@@ -145,7 +145,7 @@ Gets all the notes uploaded 10 by 10, with optional filters.
     }
 ]
 ```
-### `GET /notes/search`
+### `GET /search`
 
 ##### Description
 
