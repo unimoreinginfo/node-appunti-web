@@ -1,23 +1,5 @@
 ## Base endpoint: `/notes`
 
-### `GET /notes/:id`
-
-##### Description
-Gets information about the specified notes.
-
-##### Response
-```json
-{
-    "id": 11,
-    "title": "Integrali generalizzati",
-    "original_filename": "integrali_generalizzati.pdf",
-    "uploaded_at": "2020-08-19T21:44:08.000Z",
-    "storage_url": "/public/notes/a71bb01a8274c99f012cce000b3d5ce012bd195d3eb2bf36362bb6bf6c5a834eacafee82f9dbde2e9986a97aec5e4791689f92702a8ca6593c02083a85c87457.pdf",
-    "subject_id": 1,
-    "author_id": 11
-}
-```
-
 ### `POST /notes/`
 
 ##### Description
