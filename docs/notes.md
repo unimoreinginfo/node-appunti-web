@@ -43,6 +43,7 @@ Gets all the notes uploaded 10 by 10, with optional filters.
 | subject_id | `number` | The ID of the subject of the notes to get. | No
 | author_id | `string` | Note author's ID | No
 | order_by | `"asc" or "desc"`| Defines the way notes will be ordered (always by title). | No
+| translate_subjects | `boolean` | Specifies the name of the subject other than its ID
 
 ##### Response
 ```json
