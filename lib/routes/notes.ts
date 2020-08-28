@@ -14,9 +14,29 @@ router.get('/', async (req: express.Request, res: express.Response) => {
         const subjectId = parseInt(req.query.subjectId as string);
         const authorId = parseInt(req.query.authorId as string);
         const orderBy = req.query.orderBy as string;
-        const translateSubjects: boolean = ((req.query.translateSubjects as string) || "").length > 0 ? true : false;    
+        const translateSubjects: boolean = ((req.query.translateSubjects as string) || "").length > 0 ? true : false; 
+        const start = 1;
     
-        res.send((await NoteController.getNotes(subjectId, authorId, orderBy, translateSubjects)).results);
+        res.send((await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1]); // non ho capito
+
+    }catch(err){
+
+        console.log(err);
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+
+    }
+});
+
+router.get('/:page', async (req: express.Request, res: express.Response) => {
+    try{
+
+        const subjectId = parseInt(req.query.subjectId as string);
+        const authorId = parseInt(req.query.authorId as string);
+        const orderBy = req.query.orderBy as string;
+        const translateSubjects: boolean = ((req.query.translateSubjects as string) || "").length > 0 ? true : false; 
+        const start = parseInt(req.params.page || "1");
+    
+        res.send((await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1]); // non ho capito
 
     }catch(err){
 

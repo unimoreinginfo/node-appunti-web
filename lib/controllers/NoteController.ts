@@ -6,7 +6,7 @@ import { User } from "./UserController";
 import redis from '../redis'
 
 const self = {
-
+    
     search: async(query_string: string): Promise<string | null | Error> => {
 
         try{
@@ -79,7 +79,7 @@ const self = {
     },
 
     getNote: async function (id: string, subject_id: number, translateSubject: boolean) {
-        const result = (await db.query(`SELECT notes.id note_id, notes.title, notes.uploaded_at, notes.storage_url, notes.subject_id, notes.author_id ${translateSubject ? ", subjects.name subject_name" : ""} FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} WHERE notes.id = ? AND notes.subject_id = ?`, id)).results;
+        const result = (await db.query(`SELECT notes.id note_id, notes.title, notes.uploaded_at, notes.storage_url, notes.subject_id, notes.author_id ${translateSubject ? ", subjects.name subject_name" : ""} FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} WHERE notes.id = ? AND notes.subject_id = ?`, [id, subject_id])).results;
         
         if(!result.length)
             return null;
@@ -89,8 +89,39 @@ const self = {
         return result.length > 0 ? { result, files } : null;
     },
 
-    getNotes: async function (subjectId?: number, authorId?: number, orderBy?: string, translateSubjects?: boolean) {
-        let query = `SELECT notes.id note_id, notes.title, notes.uploaded_at, notes.storage_url, notes.subject_id, notes.author_id ${translateSubjects ? ", subjects.name subject_name" : ""} FROM notes`;
+    getNotes: async function (start: number, subjectId?: number, authorId?: number, orderBy?: string, translateSubjects?: boolean) {
+
+        /*
+
+            todo: 
+            le note vengono "paginate" di 10 in 10
+            prendiamo un parametro start e in base a quello ritorniamo una porzione delle note totali
+
+        */
+
+        let s = (start - 1) * 10; // pagine di 10 in 10
+
+        console.log(s, s + 10);
+        
+
+        // non abbiamo mysql 8 quindi non esiste row_number(), vabbe
+        let query = `
+
+            SET @row = 0;
+
+            SELECT * FROM (
+                SELECT (@row := @row + 1) as number,
+                notes.id note_id, 
+                notes.title, 
+                notes.uploaded_at, 
+                notes.storage_url, 
+                notes.subject_id, 
+                notes.author_id ${translateSubjects ? ", subjects.name subject_name" : ""} 
+            FROM notes ) res
+            WHERE res.number > ? AND res.number <= ?
+
+        `;
+
         let params: any[] = [];
         let cond: string[] = [];
 
@@ -119,6 +150,9 @@ const self = {
             `
         }
 
+        params.push(s);
+        params.push(s + 10)
+
         return await db.query(query, params);
     },
 
@@ -133,4 +167,4 @@ const self = {
     }
 }
 
-export = self;
+export default self;
