@@ -78,7 +78,6 @@ router.post('/:noteId', AuthController.middleware, async (req: express.Request, 
     
     }
 
-    
 });
 
 router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["title", "subject_id"]), async (req, res: express.Response) => {
