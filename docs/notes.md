@@ -48,7 +48,7 @@ Gets all the notes uploaded 10 by 10, with optional filters.
 
 ##### Response
 ```json
-[
+{
     success: true,
     results: [
     {
@@ -141,7 +141,7 @@ Gets all the notes uploaded 10 by 10, with optional filters.
         "subject_id": 3,
         "author_id": "a55746552a3404ad989cd4249e6accd7d357b3309952fdf97620092cda32cb81"
     }]
-]
+}
 ```
 ### `GET /search`
 
@@ -157,7 +157,7 @@ Searches by title
 
 ##### Response
 ```json
-[
+{
     success: true,
     result: [
     {
@@ -165,7 +165,7 @@ Searches by title
 	    "title": "risultati scritto lesssssgooo",
 	    "subject_id": 3
     }]
-]
+}
 ```
 ### `GET /:subject_id/:note_id`
 
