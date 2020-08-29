@@ -119,11 +119,14 @@ router.get('/:subject_id/:note_id', async (req: express.Request, res: express.Re
         );
 
         if(!r)
-            return HTTPError.NOT_FOUND.toResponse(res);
+            return HTTPError.NOT_FOUND.toResponse(res);      
 
         res.json({
             success: true,
-            result: r
+            result: {
+                info: r.result[0],
+                files: r.files
+            }
         });
 
     }catch(err){
