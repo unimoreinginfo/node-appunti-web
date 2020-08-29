@@ -3,6 +3,11 @@
 ### `GET /`
 Retrieves the list of users created.
 
+##### Query parameters
+| Name | Type | Required 
+| ---- | ----- | ------- 
+| page | `number` | No 
+
 ##### Response
 ```json
 {
