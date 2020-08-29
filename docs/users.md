@@ -16,7 +16,6 @@ Retrieves the list of users created.
         {
             "id": "7b0e17bd33df21b194ea5675c91fa84aee982cc6dc2a103592250dc8a7ce3f2d",
             "admin": 0,
-            "password": "$2a$08$.lvdSAYBv/3CpJqmP0mJRemXGlReyAcvSqYiT1EkIuxNecpH1Oryi",
             "name": "Marco",
             "surname": "Rossi",
             "email": "marco.rossi@gmail.com",
