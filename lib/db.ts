@@ -1,4 +1,4 @@
-import mysql, { Pool, createPool } from "mysql";
+import mysql, { Pool, createPool, OkPacket } from "mysql";
 
 class Db {
     pool: Pool | undefined = undefined;
@@ -24,19 +24,8 @@ class Db {
                 if (err)
                     return reject(err);
                 
-                if(buffered_results){
-                
-                    results.forEach(result => {
-
-                        let keys = Object.keys(result);
-                        keys.forEach(key => {
-                            if(result[key] instanceof Buffer)
-                                result[key] = result[key].toString();
-                        })
-                    
-                    })
-
-                }
+                if(buffered_results)
+                    results = debufferize(results);
 
                 return resolve({
                     results,
@@ -49,3 +38,22 @@ class Db {
 
 export default new Db();
 export const core = mysql;
+export const debufferize = (rows: any[]): any => {
+
+    let new_rows = rows.map(result => {
+
+        let keys = Object.keys(result);
+        keys.forEach(key => {
+
+            if(result[key] instanceof Buffer)
+                result[key] = result[key].toString();
+
+        })
+
+        return result;
+            
+    })
+
+    return new_rows;
+
+}

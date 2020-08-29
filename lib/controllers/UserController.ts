@@ -1,4 +1,4 @@
-import db, { core } from "../db";
+import db, { core, debufferize } from "../db";
 import utils from "../utils"
 import bcrypt = require("bcryptjs");
 import crypto from "crypto";
@@ -131,19 +131,24 @@ export default {
         return user.results[0];
     },
 
-    getUsers: async function (): Promise<User[]> {
-        let users = (await db.query(`SELECT  
+    getUsers: async function (start: number): Promise<User[]> {
+
+        let s = (start - 1) * 10;
+        let users = (await db.query(`
+            SET @row = 0;
+            SELECT * FROM (  
+                SELECT (@row := @row + 1) as number,
                 id, 
                 admin,
-                password,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                 AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
                 AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
                 AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimore_id
                 FROM users
-            `, [], true));
+            ) res WHERE res.number > ? AND res.number <= ?
+            `, [s, s + 10])).results[1];
 
-        return users.results;
+        return debufferize(users);
         
     },
 

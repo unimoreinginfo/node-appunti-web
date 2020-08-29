@@ -18,7 +18,10 @@ router.get('/', async (req: express.Request, res: express.Response) => {
         const translateSubjects: boolean = ((req.query.translate_subjects as string) || "").length > 0 ? true : false; 
         const start = parseInt(req.query.page as string || "1");
     
-        res.send((await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1]); // non ho capito
+        res.json({
+            success: true,
+            result: (await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1]
+        }); // non ho capito perché ritorni un array in un array ok???
 
     }catch(err){
 
@@ -38,9 +41,15 @@ router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri
         let result = await NoteController.search(query);
         let parsed = JSON.parse(result as string);
         if(!parsed)
-            return res.json([]);
+            return res.json({
+                success: true,
+                result: []
+            });
 
-        res.json(parsed);
+        res.json({
+            success: true,
+            result: parsed            
+        });
 
     }catch(err){
         return HTTPError.GENERIC_ERROR.toResponse(res);
@@ -52,12 +61,15 @@ router.post('/:noteId', AuthController.middleware, async (req: express.Request, 
 
     try{
 
-        res.json(await NoteController.updateNote(
-            req.params.note_id as string,
-            req.body.title as string,
-            parseInt(req.body.subject_id),
-            parseInt(req.body.old_subject_id)
-        ));
+        res.json({
+            success: true,
+            result: await NoteController.updateNote(
+                req.params.note_id as string,
+                req.body.title as string,
+                parseInt(req.body.subject_id),
+                parseInt(req.body.old_subject_id)
+            )
+        });
         
     }catch(err){
 
@@ -82,9 +94,6 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
         let title = req.body.title;
         let subject_id = parseInt(req.body.subject_id);
         let subject = await SubjectController.getSubject(subject_id);
-
-        console.log(file);
-        
 
         await NoteController.addNotes(me.id, title, file, subject_id);
         console.log(`${me.name} ${me.surname} uploaded "${title}" (${subject.name}) ~ ${file.size}`);
@@ -112,7 +121,10 @@ router.get('/:subject_id/:note_id', async (req: express.Request, res: express.Re
         if(!r)
             return HTTPError.NOT_FOUND.toResponse(res);
 
-        res.json(r);
+        res.json({
+            success: true,
+            result: r
+        });
 
     }catch(err){
         console.log(err);

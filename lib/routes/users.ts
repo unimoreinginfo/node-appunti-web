@@ -22,9 +22,16 @@ const userManagementMiddleware = async (req: express.Request, res: express.Respo
 };
 
 router.get('/', async (req: express.Request, res: express.Response) => {
+
+    let result = await UserController.getUsers(
+        parseInt(req.query.page as string || "1")
+    )
+
+    console.log(result);
+    
     res.json({
         success: true,
-        result: await UserController.getUsers()
+        result
     });
 });
 
@@ -32,6 +39,7 @@ router.get('/:userId', async (req: express.Request, res: express.Response) => {
     let result = await UserController.getUser(req.params.userId);
     if (result === undefined)
         return HTTPError.USER_NOT_FOUND.toResponse(res);
+        
     res.json({
         success: true,
         result
