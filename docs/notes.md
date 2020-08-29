@@ -48,7 +48,9 @@ Gets all the notes uploaded 10 by 10, with optional filters.
 
 ##### Response
 ```json
-[
+{
+    success: true,
+    results: [
     {
         "number": 1,
         "note_id": "035fef01806ddfb9faa6c315e1089133eda2f11c49ad7aaccebc5d5b34a8b77784fd4e1fae8798bf5c85fcd57757a8da79217d296169d936a070aa812c9aa88e",
@@ -138,8 +140,8 @@ Gets all the notes uploaded 10 by 10, with optional filters.
         "storage_url": "/public/notes/2d351a67a2ca50e3124f6ab0455c13cb0f2cc1da893bcbf9cbfcdf76b492b4ed253a0ed865f0d3711d06b1331c830ddc143064b297bdfbfc3ac98a0f02bab1d0",
         "subject_id": 3,
         "author_id": "a55746552a3404ad989cd4249e6accd7d357b3309952fdf97620092cda32cb81"
-    }
-]
+    }]
+}
 ```
 ### `GET /search`
 
@@ -155,13 +157,15 @@ Searches by title
 
 ##### Response
 ```json
-[
+{
+    success: true,
+    result: [
     {
 	    "id": "035fef01806ddfb9faa6c315e1089133eda2f11c49ad7aaccebc5d5b34a8b77784fd4e1fae8798bf5c85fcd57757a8da79217d296169d936a070aa812c9aa88e",
 	    "title": "risultati scritto lesssssgooo",
 	    "subject_id": 3
-    }
-]
+    }]
+}
 ```
 ### `GET /:subject_id/:note_id`
 
@@ -174,17 +178,17 @@ None
 ##### Response
 ```json
 {
-  "result": 
-    {
-      "note_id": "035fef01806ddfb9faa6c315e1089133eda2f11c49ad7aaccebc5d5b34a8b77784fd4e1fae8798bf5c85fcd57757a8da79217d296169d936a070aa812c9aa88e",
-      "title": "risultati scritto lesssssgooo",
-      "uploaded_at": "2020-08-28T17:23:32.000Z",
-      "storage_url": "/public/notes/035fef01806ddfb9faa6c315e1089133eda2f11c49ad7aaccebc5d5b34a8b77784fd4e1fae8798bf5c85fcd57757a8da79217d296169d936a070aa812c9aa88e",
-      "subject_id": 3,
-      "author_id": "a55746552a3404ad989cd4249e6accd7d357b3309952fdf97620092cda32cb81"
-    },
-  "files": [
-    "01_Risultati Scritto del 07.01.2020.pdf"
-  ]
+	"success": true,
+	"result": {
+		"info": {
+			"note_id": "73090e1ccd63dd8727035ccea9d87dd5415f0131c4fb5b63dc9f6477b10a734fed8b3a8f31d6aa7f17f882dada9a5dd11d22aac8c905eaec6df1c9c3dca0c014",
+			"title": "ma basta",
+			"uploaded_at": "2020-08-28T20:21:40.000Z",
+			"storage_url": "/public/notes/3/73090e1ccd63dd8727035ccea9d87dd5415f0131c4fb5b63dc9f6477b10a734fed8b3a8f31d6aa7f17f882dada9a5dd11d22aac8c905eaec6df1c9c3dca0c014",
+			"subject_id": 3,
+			"author_id": "a55746552a3404ad989cd4249e6accd7d357b3309952fdf97620092cda32cb81"
+		},
+		"files": ["01_Risultati Scritto del 07.01.2020.pdf"]
+	}
 }
 ```
