@@ -154,9 +154,7 @@ const self = {
     },
 
     deleteNote: async function (id: string, subject_id: number) {
-
-        console.log(id, subject_id);
-        
+       
         let result = await db.query("DELETE FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);
         console.log(id, result);
         

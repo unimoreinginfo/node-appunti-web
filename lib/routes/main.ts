@@ -12,14 +12,4 @@ router.get('/', (req: express.Request, res: express.Response) => {
 
 })
 
-router.get('/test', AuthController.middleware, (req: express.Request, res: express.Response) => {
-
-    console.log(res.get('user'));
-    
-    res.json({
-        success: true,
-        message: 'authenticated'
-    })
-})
-
 export = router;
