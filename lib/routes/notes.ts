@@ -57,18 +57,32 @@ router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri
 
 })
 
-router.post('/:noteId', AuthController.middleware, async (req: express.Request, res: express.Response) => {
+router.post('/:subject_id/:note_id', [AuthController.middleware, utils.requiredParameters("POST", ["title", "new_subject_id"])], async (req: express.Request, res: express.Response) => {
 
     try{
 
+        let me = JSON.parse(res.get("user"));        
+        let note = await (NoteController.getNote(req.params.note_id, parseInt(req.params.subject_id), false));
+
+        console.log(req.params.note_id, req.params.subject_id);
+        
+
+        if(!note)
+            return HTTPError.NOT_FOUND.toResponse(res);
+
+        if(!me.admin){
+            if(note!.result.author_id != me.id)
+                return HTTPError.UNAUTHORIZED.toResponse(res);
+        }
+
         res.json({
             success: true,
-            result: await NoteController.updateNote(
+            result: (await NoteController.updateNote(
                 req.params.note_id as string,
                 req.body.title as string,
-                parseInt(req.body.subject_id),
-                parseInt(req.body.old_subject_id)
-            )
+                parseInt(req.params.subject_id),
+                parseInt(req.body.new_subject_id)
+            )).results.affectedRows
         });
         
     }catch(err){

@@ -7,20 +7,6 @@ import bcrypt from "bcryptjs"
 
 let router = express.Router();
 
-const userManagementMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    let me = JSON.parse(res.get('user'));
-    let user_id = req.params.user_id;
-
-    if (me.id != user_id && !me.admin)
-        return new HTTPError("user_info_access_unauthorized", 401).toResponse(res);
-
-    let user = await UserController.getUser(user_id);
-    if (user === undefined)
-        return new HTTPError("user_not_found", 400).toResponse(res);
-
-    next();
-};
-
 router.get('/', async (req: express.Request, res: express.Response) => {
 
     let result = await UserController.getUsers(
@@ -47,7 +33,7 @@ router.get('/:userId', async (req: express.Request, res: express.Response) => {
 });
 
 router.post('/:user_id',
-    [AuthController.middleware, userManagementMiddleware],
+    [AuthController.middleware, AuthController.userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
         let me = JSON.parse(res.get('user'));
         let user_id = req.params.user_id;
@@ -71,7 +57,7 @@ router.post('/:user_id',
     });
 
 router.post('/:user_id/password',
-    [AuthController.middleware, utils.requiredParameters("POST", ["new_password"]), userManagementMiddleware],
+    [AuthController.middleware, utils.requiredParameters("POST", ["new_password"]), AuthController.userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
         let me = JSON.parse(res.get('user'));
         let user_id = req.params.user_id;
@@ -97,11 +83,11 @@ router.post('/:user_id/password',
 router.delete('/:user_id', [AuthController.middleware], async (req: express.Request, res: express.Response) => {
     let me = JSON.parse(res.get('user'));
     if (!me.admin) 
-        return new HTTPError("unauthorized", 401).toResponse(res);
+        return HTTPError.UNAUTHORIZED.toResponse(res);
 
     let success = await UserController.deleteUser(req.params.user_id);
     if (!success)
-        return new HTTPError("user_not_found", 400).toResponse(res);
+        return HTTPError.USER_NOT_FOUND.toResponse(res);
 
     res.json({ success });
 });

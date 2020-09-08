@@ -1,7 +1,7 @@
 import db, { core } from "../db";
 import path from "path";
 import crypto from "crypto"
-import { readdir, rmdirSync } from 'fs-extra';
+import { readdir, rmdirSync, rename } from 'fs-extra';
 import { User } from "./UserController";
 import redis from '../redis'
 
@@ -72,6 +72,9 @@ const self = {
     },
 
     updateNote: async function (noteId: string, title: string, oldSubjectId: number, subjectId: number) {
+
+        await rename(`./public/notes/${oldSubjectId}/${noteId}`, `./public/notes/${subjectId}/${noteId}`)
+
         return await db.query(
             "UPDATE notes SET title = ?, subject_id = ? WHERE id = ? AND subject_id = ?",
             [title, subjectId, noteId, oldSubjectId]

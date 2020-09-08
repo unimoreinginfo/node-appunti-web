@@ -1,4 +1,7 @@
 import db from "../db";
+import {
+    mkdir
+} from 'fs-extra';
 
 export interface Subject {
     name: string,

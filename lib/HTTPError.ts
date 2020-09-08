@@ -28,7 +28,9 @@ export default class HTTPError{
     public static readonly EXPIRED_CREDENTIALS = new HTTPError('expired_credentials', 401);
     public static readonly MALFORMED_CREDENTIALS = new HTTPError('malformed_credentials', 400);
     public static readonly GENERIC_ERROR = new HTTPError('generic_error', 500);
-    public static readonly USER_NOT_FOUND = new HTTPError('user_not_found', 400);
+    public static readonly USER_NOT_FOUND = new HTTPError('user_not_found', 404);
+    public static readonly UNAUTHORIZED = new HTTPError('unauthorized', 401);
+    public static readonly USER_INFO_ACCESS_UNAUTHORIZED = new HTTPError('user_info_access_unauthorized', 401);
 
     public static readonly missingParameters = (...params: string[]) =>
         new HTTPError('missing_parameters', 400).addParam('missing', params);

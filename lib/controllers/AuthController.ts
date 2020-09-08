@@ -18,8 +18,41 @@ export interface Session {
 }
 
 const self = {
+
     truncateSessions: async (): Promise<any> => {
         return await db.query("TRUNCATE sessions");
+    },
+
+    adminMiddleware: async(req: Request, res: Response, next: NextFunction) => {
+
+        let me = JSON.parse(res.get('user'));
+        let user = await UserController.getUser(me.id);
+
+        console.log(me);
+        
+
+        if(!user.admin)
+            return HTTPError.UNAUTHORIZED.toResponse(res);
+
+        next();
+    
+    },
+
+    userManagementMiddleware: async (req: Request, res: Response, next: NextFunction) => {
+
+        let me = JSON.parse(res.get('user'));
+        let user_id = req.params.user_id;
+
+        if (me.id != user_id && !me.admin)
+            return HTTPError.USER_INFO_ACCESS_UNAUTHORIZED.toResponse(res);
+
+        let user = await UserController.getUser(user_id);
+        console.log(me);
+        
+        if (user === undefined)
+            return HTTPError.USER_NOT_FOUND.toResponse(res);
+        next();
+    
     },
 
     middleware: async (req: Request, res: Response, next: NextFunction) => {
