@@ -14,12 +14,12 @@ There isn't any file-type check, thus notes can be of any kind of format (pdf, i
 | title | `string` | The title of the notes file that will be displayed. | Yes
 | subject_id | `number` | The ID of the subject these notes refer to. | Yes
 
-### `DELETE /:id`
+### `DELETE /:subject_id/:id`
 
 ##### Description
 Deletes the specified notes.
 
-### `POST /:noteId` (WIP NON USARE)
+### `POST /:subject_id/:note_id`
 
 ##### Description
 Updates the specified notes. 
@@ -28,7 +28,7 @@ Updates the specified notes.
 | Name | Type | Description | Required
 | ---- | ---- | ----------- | --------
 | title | `string` | The new title of the notes. | Yes
-| subject_id | `number` | The ID of the new subject. | Yes
+| Name | `number` | The ID of the new subject. | Yes
 
 ### `GET /`
 
