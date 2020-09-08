@@ -62,10 +62,7 @@ router.post('/:subject_id/:note_id', [AuthController.middleware, utils.requiredP
     try{
 
         let me = JSON.parse(res.get("user"));        
-        let note = await (NoteController.getNote(req.params.note_id, parseInt(req.params.subject_id), false));
-
-        console.log(req.params.note_id, req.params.subject_id);
-        
+        let note = await (NoteController.getNote(req.params.note_id, parseInt(req.params.subject_id), false));        
 
         if(!note)
             return HTTPError.NOT_FOUND.toResponse(res);
@@ -151,7 +148,17 @@ router.get('/:subject_id/:note_id', async (req: express.Request, res: express.Re
 router.delete('/:subject_id/:note_id', AuthController.middleware, async (req: express.Request, res: express.Response) => {
     try{
         
-        // todo: controllare che chi sta cancellando la nota sia autorizzato
+        let me = JSON.parse(res.get('user'));
+        let note = await NoteController.getNote(req.params.note_id, parseInt(req.params.subject_id), false);
+
+        if(!note)
+            return HTTPError.NOT_FOUND.toResponse(res);
+
+        if(!me.admin){
+            if(note!.result.author_id != me.id)
+                return HTTPError.UNAUTHORIZED.toResponse(res);
+        }
+        
         await NoteController.deleteNote(req.params.note_id, parseInt(req.params.subject_id));
         res.json({
             success: true
