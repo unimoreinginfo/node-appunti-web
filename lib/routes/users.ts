@@ -63,8 +63,8 @@ router.post('/:user_id',
             req.body.name,
             req.body.surname,
             req.body.password,
-            parseInt(req.body.unimore_id),
-            parseInt(req.body.admin)
+            parseInt(req.body.unimore_id) || undefined,
+            parseInt(req.body.admin) || undefined
         );
 
         res.json({ success: true });

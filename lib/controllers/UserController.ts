@@ -61,7 +61,7 @@ export default {
         };
         const updates: string[] = [];
         for (const [key, val] of Object.entries(values)) {
-            if (params[key] === undefined) {
+            if (params[key] == null) {
                 delete params[key];
                 continue;
             }
