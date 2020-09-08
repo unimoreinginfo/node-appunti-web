@@ -76,8 +76,8 @@ const self = {
         await rename(`./public/notes/${oldSubjectId}/${noteId}`, `./public/notes/${subjectId}/${noteId}`)
 
         return await db.query(
-            "UPDATE notes SET title = ?, subject_id = ? WHERE id = ? AND subject_id = ?",
-            [title, subjectId, noteId, oldSubjectId]
+            "UPDATE notes SET title = ?, subject_id = ?, storage_url = ? WHERE id = ? AND subject_id = ?",
+            [title, subjectId, `/public/notes/${subjectId}/${noteId}`, noteId, oldSubjectId]
         );
     },
 
