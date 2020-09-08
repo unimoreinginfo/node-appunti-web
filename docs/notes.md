@@ -28,7 +28,7 @@ Updates the specified notes.
 | Name | Type | Description | Required
 | ---- | ---- | ----------- | --------
 | title | `string` | The new title of the notes. | Yes
-| Name | `number` | The ID of the new subject. | Yes
+| new_subject_id | `number` | The ID of the new subject. | Yes
 
 ### `GET /`
 
