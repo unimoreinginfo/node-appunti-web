@@ -8,7 +8,14 @@ import utils from "../utils"
 
 let router = express.Router();
 
-router.post('/register|signup', utils.requiredParameters("POST", ["name", "surname", "email", "password"]), async(req: express.Request, res: express.Response) => {
+router.post('/register|signup', 
+    utils.requiredParameters("POST", ["name", "surname", {
+        name: 'email',
+        re: utils.email_regex
+    }, {
+        name: 'password',
+        re: utils.password_regex
+    }]), async(req: express.Request, res: express.Response) => {
 
     let name: string = xss.inHTMLData(req.body.name),
         surname: string = xss.inHTMLData(req.body.surname),
