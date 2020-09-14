@@ -82,7 +82,7 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
         console.log(refresh_token);
         
 
-        res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST,  maxAge: parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS)), httpOnly: true, secure: true});
+        res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST, sameSite: 'none',  maxAge: parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS)), httpOnly: true, secure: true});
         res.json({success: true, auth_token, refresh_token_expiry: ((Date.now() / 1000) + parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS))).toFixed(0)}); 
         
     }catch(err){
