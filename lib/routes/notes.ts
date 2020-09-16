@@ -13,7 +13,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
     try{
 
         const subjectId = parseInt(req.query.subject_id as string);
-        const authorId = parseInt(req.query.author_id as string);
+        const authorId = req.query.author_id as string;
         const orderBy = req.query.order_by as string;
         const translateSubjects: boolean = ((req.query.translate_subjects as string) || "").length > 0 ? true : false; 
         const start = parseInt(req.query.page as string || "1");
