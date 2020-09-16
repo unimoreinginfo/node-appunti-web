@@ -103,7 +103,7 @@ const self = {
         return result.length > 0 ? { result, files } : null;
     },
 
-    getNotes: async function (start: number, subjectId?: number, authorId?: number, orderBy?: string, translateSubjects?: boolean) {
+    getNotes: async function (start: number, subjectId?: number, authorId?: string, orderBy?: string, translateSubjects?: boolean) {
 
         /*
 
