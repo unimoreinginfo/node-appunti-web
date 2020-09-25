@@ -63,7 +63,7 @@ const self = {
         let results = await Promise.all(jobs);
 
         const q = await db.query(
-            "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, 0)",
             [notes_id, title, new Date(), `/public/notes/${subjectId}/${notes_id}`, subjectId, author_id]
         );
 

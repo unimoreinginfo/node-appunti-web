@@ -29,7 +29,7 @@ export default class Router{
         let cors_options = {
             credentials: true,
             origin: this.#whitelist,
-            allowedHeaders: ['Authorization'],
+            allowedHeaders: ['Authorization', 'authorization'],
             methods: ['GET', 'POST', 'DELETE', 'PUT']
         }
 
