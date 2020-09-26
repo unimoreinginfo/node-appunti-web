@@ -16,7 +16,8 @@ export default class Router{
         // vedremo se sta cosa ha un'utilità oppure no
         this.#app = express();
         this.#whitelist = [
-            `https://betappunti.carminezacc.com`
+            `https://betappunti.carminezacc.com`,
+            'https://appunti.me'
         ] // whitelist di domini per il CORS
 
     }

@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs"
 
 let router = express.Router();
 
-router.get('/', async (req: express.Request, res: express.Response) => {
+router.get('/', AuthController.middleware, AuthController.adminMiddleware, async (req: express.Request, res: express.Response) => {
 
     let result = await UserController.getUsers(
         parseInt(req.query.page as string || "1")
@@ -33,6 +33,14 @@ router.get('/:userId', async (req: express.Request, res: express.Response) => {
 });
 
 router.post('/:user_id',
+    utils.requiredParameters("POST", [
+        "unimore_id",
+        "admin",
+        "name",
+        "surname",
+        "password",
+        "user_id"
+    ]),
     [AuthController.middleware, AuthController.userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
         let me = JSON.parse(res.get('user'));
@@ -44,13 +52,19 @@ router.post('/:user_id',
         if (!me.admin && req.body.admin)
             return new HTTPError("admin_upgrade_unauthorized", 401).toResponse(res);
 
+        let unimore_id = parseInt(req.body.unimore_id);
+        let admin = parseInt(req.body.admin);
+
+        if(isNaN(unimore_id)) unimore_id = 0;
+        if(isNaN(admin)) admin = 0;
+
         await UserController.updateUser(
             user_id,
             req.body.name,
             req.body.surname,
             req.body.password,
-            parseInt(req.body.unimore_id) || undefined,
-            parseInt(req.body.admin) || undefined
+            unimore_id,
+            admin
         );
 
         res.json({ success: true });

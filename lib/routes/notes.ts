@@ -33,9 +33,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 
 router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri in req.query al posto che in req.params*/, ["q"]), async(req: express.Request, res: express.Response) => {
 
-    const query = req.query.q! as string;
-
-    console.log(query);
+    const query = req.query.q as string;
 
     try{
         let result = await NoteController.search(query);
@@ -68,8 +66,10 @@ router.post('/:subject_id/:note_id', [AuthController.middleware, utils.requiredP
             return HTTPError.NOT_FOUND.toResponse(res);
 
         if(!me.admin){
-            if(note!.result.author_id != me.id)
+            
+            if(note.result[0].author_id != me.id)
                 return HTTPError.UNAUTHORIZED.toResponse(res);
+                
         }
 
         res.json({
@@ -106,7 +106,6 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
         let subject = await SubjectController.getSubject(subject_id);
 
         await NoteController.addNotes(me.id, title, file, subject_id);
-        console.log(`${me.name} ${me.surname} uploaded "${title}" (${subject.name}) ~ ${file.size}`);
 
         res.json({ success: true });
 
@@ -155,7 +154,7 @@ router.delete('/:subject_id/:note_id', AuthController.middleware, async (req: ex
             return HTTPError.NOT_FOUND.toResponse(res);
 
         if(!me.admin){
-            if(note!.result.author_id != me.id)
+            if(note!.result[0].author_id != me.id)
                 return HTTPError.UNAUTHORIZED.toResponse(res);
         }
         

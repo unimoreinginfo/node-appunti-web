@@ -64,14 +64,20 @@ const self = {
         let refresh_token = req.cookies.ref_token;
         let user;
 
+        console.log(refresh_token);
+
         try {
 
             let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
             let session = await self.getSession(refresh_token);
 
+            console.log(session, jwt_payload);
+
             if(session.user_id != jwt_payload.user_id)
                 return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
+            console.log("GONHLE");
+            
             let user = await UserController.getUser(jwt_payload.user_id);
 
             res.set('user', JSON.stringify(user));
@@ -86,6 +92,8 @@ const self = {
                 .then(async (session) => {
 
                     let decoded = await jwt.decode(token, { algorithm: 'HS256' });
+
+                    console.log(session.user_id, decoded.user_id);
 
                     if(session.user_id != decoded.user_id)
                         return HTTPError.INVALID_CREDENTIALS.toResponse(res);

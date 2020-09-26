@@ -11,6 +11,8 @@ if(!process.env.URI) throw new Error('uri undefined'); // troverò un modo più 
 if(!process.env.REFRESH_TOKEN_TIMEOUT_SECONDS) throw new Error('timeout seconds jwt undefined'); 
 if(!process.env.AES_KEY) throw new Error('aes key undefined')
 
+console.log(process.env.PWD);
+
 const router = new Router();
 router.init();
 

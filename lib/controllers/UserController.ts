@@ -2,6 +2,7 @@ import db, { core, debufferize } from "../db";
 import utils from "../utils"
 import bcrypt = require("bcryptjs");
 import crypto from "crypto";
+import { mkdir } from "fs-extra"
 
 export interface User{
     id: string,
@@ -30,6 +31,11 @@ export default {
     },
 
     createUser: async function (name: string, surname: string, email: string, password: string, admin: number, unimoreId?: number) {
+
+        let id = utils.generateUserId();
+
+        await mkdir(`./public/notes/${id}`);
+
         return await db.query(`
             INSERT INTO users VALUES(
                 ?,
@@ -40,7 +46,7 @@ export default {
                 ?,
                 AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) })
             )
-        `, [utils.generateUserId(), name, surname, email, await bcrypt.hash(password, 8), admin, unimoreId])
+        `, [id, name, surname, email, await bcrypt.hash(password, 8), admin, unimoreId])
 
     },
 

@@ -1,7 +1,7 @@
 import db, { core } from "../db";
 import path from "path";
 import crypto from "crypto"
-import { readdir, rmdirSync, rename } from 'fs-extra';
+import { readdir, rmdirSync } from 'fs-extra';
 import { User } from "./UserController";
 import redis from '../redis'
 
@@ -40,15 +40,15 @@ const self = {
         }
 
     },
-    createFile: async(file: any, title: string, file_id: string, subjectId: number, author_id: string) => {
+    createFile: async(file: any, title: string, file_id: string, author_id: string) => {
 
-        const file_path = `./public/notes/${subjectId}/${file_id}/${file.name}`;
+        const file_path = `./public/notes/${author_id}/${file_id}/${file.name}`;
         file.mv(file_path);
         return file_path;
     
     },
 
-    addNotes: async (author_id: string, title: string, file: any | any[], subjectId: number) => {
+    addNotes: async (author_id: string, title: string, file: any | any[], subject_id: number) => {
         
         let stuff = new Array();
         let jobs = new Array();
@@ -59,12 +59,12 @@ const self = {
         else
             stuff = file.map(f => { return f });
         
-        stuff.forEach(f => jobs.push(self.createFile(f, title, notes_id, subjectId, author_id)));
+        stuff.forEach(f => jobs.push(self.createFile(f, title, notes_id, author_id)));
         let results = await Promise.all(jobs);
 
         const q = await db.query(
             "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, 0)",
-            [notes_id, title, new Date(), `/public/notes/${subjectId}/${notes_id}`, subjectId, author_id]
+            [notes_id, title, new Date(), `/public/notes/${author_id}/${notes_id}`, subject_id, author_id]
         );
 
         return q.results.affectedRows > 0;        
@@ -73,11 +73,9 @@ const self = {
 
     updateNote: async function (noteId: string, title: string, oldSubjectId: number, subjectId: number) {
 
-        await rename(`./public/notes/${oldSubjectId}/${noteId}`, `./public/notes/${subjectId}/${noteId}`)
-
         return await db.query(
-            "UPDATE notes SET title = ?, subject_id = ?, storage_url = ? WHERE id = ? AND subject_id = ?",
-            [title, subjectId, `/public/notes/${subjectId}/${noteId}`, noteId, oldSubjectId]
+            "UPDATE notes SET title = ?, subject_id = ? WHERE id = ? AND subject_id = ?",
+            [title, subjectId, noteId, oldSubjectId]
         );
     },
 
@@ -98,7 +96,7 @@ const self = {
         if(!result.length)
             return null;
 
-        let files = await readdir(`./public/notes/${subject_id}/${id}`);
+        let files = await readdir(`./public/notes/${result[0].author_id}/${id}`);
 
         return result.length > 0 ? { result, files } : null;
     },
@@ -155,13 +153,15 @@ const self = {
 
     deleteNote: async function (id: string, subject_id: number) {
        
-        let result = await db.query("DELETE FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);
-        console.log(id, result);
+        let s = await db.query("SELECT * FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);
+        console.log(id, s);
         
-        if(result.results.affectedRows > 0)
-            rmdirSync(`./public/notes/${subject_id}/${id}`, { recursive: true })
+        if(s.results.length > 0){
+            await db.query("DELETE FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);
+            rmdirSync(`./public/notes/${subject_id}/${id}`, { recursive: true });
+        }
 
-        return result.affectedRows > 0;
+        return s.results.length > 0;
     }
 }
 
