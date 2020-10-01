@@ -5,9 +5,10 @@ import SubjectController from "../controllers/SubjectController";
 import { post } from './main';
 import utils from '../utils';
 import HTTPError from '../HTTPError';
+import xss = require("xss-filters");
+import UserController from '../controllers/UserController';
 
 let router = express.Router();
-
 
 router.get('/', async (req: express.Request, res: express.Response) => {
     try{
@@ -75,10 +76,10 @@ router.post('/:subject_id/:note_id', [AuthController.middleware, utils.requiredP
         res.json({
             success: true,
             result: (await NoteController.updateNote(
-                req.params.note_id as string,
-                req.body.title as string,
-                parseInt(req.params.subject_id),
-                parseInt(req.body.new_subject_id)
+                xss.inHTMLData(req.params.note_id as string),
+                xss.inHTMLData(req.body.title as string),
+                parseInt(xss.inHTMLData(req.params.subject_id)),
+                parseInt(xss.inHTMLData(req.body.new_subject_id))
             )).results.affectedRows
         });
         
@@ -96,16 +97,19 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
     try{
 
         let me = JSON.parse(res.get('user'));
+        console.log(me);
+        
 
         let file;
         if ((req as any).files === undefined || (file = (req as any).files.notes) === undefined)
             return HTTPError.missingParameters("notes").toResponse(res);
 
-        let title = req.body.title;
-        let subject_id = parseInt(req.body.subject_id);
+        let title = xss.inHTMLData(req.body.title);
+        let subject_id = parseInt(xss.inHTMLData(req.body.subject_id));
         let subject = await SubjectController.getSubject(subject_id);
 
         await NoteController.addNotes(me.id, title, file, subject_id);
+        await UserController.setUserSize(me.id);
 
         res.json({ success: true });
 

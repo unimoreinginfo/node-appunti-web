@@ -10,6 +10,7 @@ if(!process.env.PORT) throw new Error('port undefined'); // mi sembra di usare r
 if(!process.env.URI) throw new Error('uri undefined'); // troverò un modo più carino di fare sta cosa
 if(!process.env.REFRESH_TOKEN_TIMEOUT_SECONDS) throw new Error('timeout seconds jwt undefined'); 
 if(!process.env.AES_KEY) throw new Error('aes key undefined')
+if(!process.env.MAX_USER) throw new Error('user limit unspecified')
 
 console.log(process.env.PWD);
 

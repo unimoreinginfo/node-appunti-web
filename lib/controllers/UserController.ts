@@ -3,6 +3,8 @@ import utils from "../utils"
 import bcrypt = require("bcryptjs");
 import crypto from "crypto";
 import { mkdir } from "fs-extra"
+import redis from "../redis";
+import { spawn } from 'child_process'
 
 export interface User{
     id: string,
@@ -16,6 +18,42 @@ export interface User{
 
 export default {
     hashPassword: async (password: string) => await bcrypt.hash(password, 8),
+
+    getUserSize: async(user_id: string): Promise<number> => {
+
+        let query = await db.query("SELECT size FROM users WHERE id = ?", [user_id]);
+        return parseInt(query.results[0].size);
+
+    },
+
+    setUserSize: (user_id: string): Promise<boolean> => {
+
+        return new Promise(
+            (resolve, reject) => {
+
+                // the linux way
+                let size_command = spawn(`du`, [`./public/notes/${user_id}`, '-sh', '--bytes'])
+                let size: number;
+
+                size_command.stdout.once('data', async(data) => {
+            
+                    size = parseInt(data.toString('utf-8').split("\t")[0]);
+                    await db.query('UPDATE users SET size = ? WHERE id = ?', [size, user_id]);
+
+                    return resolve(true)
+
+                });
+
+                size_command.stderr.once('data', data => {
+
+                    return reject(false);
+
+                })
+            
+            }
+        )
+
+    },
 
     isRegistered: async (email: string): Promise<boolean> => {
 
@@ -91,7 +129,7 @@ export default {
         return result.results.affectedRows > 0;
     },
 
-    getUser: async function (userId: string): Promise<User> {
+    getUser: async function (userId: string): Promise<User | null> {
         let users = (await db.query(`SELECT  
                 id, 
                 admin,
@@ -102,10 +140,15 @@ export default {
                 FROM users WHERE id = ?
             `, [userId], true));
 
+        console.log(users.results.length);
+
+        if(users.results.length == 0)
+            return null;
+
         return users.results[0];
     },
 
-    getUserFull: async function (userId: string): Promise<User> {
+    getUserFull: async function (userId: string): Promise<User | null> {
         let users = (await db.query(`SELECT  
                 id, 
                 admin,
@@ -117,10 +160,13 @@ export default {
                 FROM users WHERE id = ?
             `, [userId], true));
 
+        if(!users.results.length)
+            return null
+
         return users.results[0];
     },
 
-    getUserByEmail: async function (email: string): Promise<User> {
+    getUserByEmail: async function (email: string): Promise<User | null> {
         let user = (await db.query(`SELECT * FROM
                 ( SELECT 
                     id, 
@@ -134,10 +180,13 @@ export default {
                 WHERE T.email = ?
             `, [email], true));
         
+        if(!user.results.length)
+            return null
+
         return user.results[0];
     },
 
-    getUsers: async function (start: number): Promise<User[]> {
+    getUsers: async function (start: number): Promise<User[] | null> {
 
         let s = (start - 1) * 10;
         let users = (await db.query(`
@@ -153,6 +202,9 @@ export default {
                 FROM users
             ) res WHERE res.number > ? AND res.number <= ?
             `, [s, s + 10])).results[1];
+
+        if(!users.results.length)
+            return null
 
         return debufferize(users);
         

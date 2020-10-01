@@ -1,5 +1,5 @@
 import express from 'express';
-import xss = require('xss-filters');
+import xss = require("xss-filters");
 import AuthController, { JWTPayload } from "../controllers/AuthController";
 import UserController, { User } from "../controllers/UserController";
 import { randomBytes } from "crypto";

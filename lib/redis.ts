@@ -16,7 +16,7 @@ class RClient{
         })
 
     }
-
+    
     get(key_type: KeyType, key: string): Promise<string | null | Error> {
 
         return new Promise(
@@ -58,4 +58,5 @@ class RClient{
 }
 
 export default new RClient(parseInt(process.env.REDIS_PORT || "6379"));
-export type KeyType = "notes" | "subjects" | "students"
+export type KeyType = "notes" | "subjects" | "students" 
+export type HKeyType = "size"

@@ -49,6 +49,9 @@ const self = {
     },
 
     addNotes: async (author_id: string, title: string, file: any | any[], subject_id: number) => {
+
+        if(isNaN(subject_id))
+            return Promise.reject(false);
         
         let stuff = new Array();
         let jobs = new Array();
@@ -73,6 +76,9 @@ const self = {
 
     updateNote: async function (noteId: string, title: string, oldSubjectId: number, subjectId: number) {
 
+        if(isNaN(subjectId) || isNaN(oldSubjectId))
+            return Promise.reject(false);
+
         return await db.query(
             "UPDATE notes SET title = ?, subject_id = ? WHERE id = ? AND subject_id = ?",
             [title, subjectId, noteId, oldSubjectId]
@@ -80,6 +86,7 @@ const self = {
     },
 
     getNote: async function (id: string, subject_id: number, translateSubject: boolean) {
+    
         const result = (await db.query(`
             SELECT 
                 notes.id note_id, 

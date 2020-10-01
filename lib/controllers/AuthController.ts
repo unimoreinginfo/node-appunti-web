@@ -28,6 +28,9 @@ const self = {
         let me = JSON.parse(res.get('user'));
         let user = await UserController.getUser(me.id);
 
+        if(!user)
+            return HTTPError.USER_NOT_FOUND.toResponse(res);
+
         console.log(me);
         
 
@@ -49,8 +52,9 @@ const self = {
         let user = await UserController.getUser(user_id);
         console.log(me);
         
-        if (user === undefined)
+        if (!user)
             return HTTPError.USER_NOT_FOUND.toResponse(res);
+
         next();
     
     },
@@ -76,9 +80,8 @@ const self = {
             if(session.user_id != jwt_payload.user_id)
                 return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
-            console.log("GONHLE");
-            
             let user = await UserController.getUser(jwt_payload.user_id);
+            if(!user) return HTTPError.USER_NOT_FOUND.toResponse(res);
 
             res.set('user', JSON.stringify(user));
 
@@ -99,6 +102,7 @@ const self = {
                         return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
                     user = await UserController.getUser(session.user_id) as User;
+                    if(!user) return HTTPError.USER_NOT_FOUND.toResponse(res);
 
                     if (!refresh_token || !session || !Object.keys(session).length)
                         return HTTPError.INVALID_CREDENTIALS.toResponse(res);
