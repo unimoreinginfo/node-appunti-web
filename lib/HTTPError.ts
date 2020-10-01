@@ -31,6 +31,9 @@ export default class HTTPError{
     public static readonly USER_NOT_FOUND = new HTTPError('user_not_found', 404);
     public static readonly UNAUTHORIZED = new HTTPError('unauthorized', 401);
     public static readonly USER_INFO_ACCESS_UNAUTHORIZED = new HTTPError('user_info_access_unauthorized', 401);
+    public static readonly MAX_SIZE_REACHED = new HTTPError('max_storage_size_reached', 400);
+    public static readonly TOO_MANY_FILES = new HTTPError('too_many_files', 413);
+    public static readonly TOO_MANY_REQUESTS = new HTTPError('too_many_requests', 429);
 
     public static readonly missingParameters = (...params: string[]) =>
         new HTTPError('missing_parameters', 400).addParam('missing', params);

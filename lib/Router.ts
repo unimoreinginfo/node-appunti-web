@@ -16,7 +16,6 @@ export default class Router{
         // vedremo se sta cosa ha un'utilità oppure no
         this.#app = express();
         this.#whitelist = [
-            `https://betappunti.carminezacc.com`,
             'https://appunti.me'
         ] // whitelist di domini per il CORS
 
@@ -33,9 +32,9 @@ export default class Router{
             allowedHeaders: ['Authorization', 'authorization'],
             methods: ['GET', 'POST', 'DELETE', 'PUT']
         }
-
+        
         this.#app.use(helmet());
-        this.#app.use(fileUpload({createParentPath: true}));
+        this.#app.use(fileUpload({createParentPath: true, abortOnLimit: '20m', useTempFiles: true, tempFileDir: './tmp'}));
         this.#app.use(cors(cors_options));
         this.#app.enable("trust proxy");
         this.#app.disable("x-powered-by");

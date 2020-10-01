@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto"
 import HTTPError from './HTTPError'
+import { unlink } from "fs-extra";
 
 interface TestableParam{
     name: string,
@@ -7,6 +8,24 @@ interface TestableParam{
 }
 
 let self = {
+
+    deleteTmpFiles: async(files: any): Promise<void> => {
+
+        let work = [];
+            if(files.hasOwnProperty("name"))
+                await unlink(files.tempFilePath)
+            else{
+                let work = new Array();
+                files.forEach(f => {
+
+                    work.push(unlink(f.tempFilePath))
+
+                })
+
+                await Promise.all(work)
+            }
+
+    },
 
     requiredParameters: (type: string = "GET", params: (string | TestableParam)[]) => {
 

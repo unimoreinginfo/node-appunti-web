@@ -110,3 +110,4 @@ dist
 
 # Folder reserved to public files (in this case notes, propics...)
 public
+tmp
