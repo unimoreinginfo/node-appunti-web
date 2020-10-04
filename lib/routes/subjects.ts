@@ -2,12 +2,9 @@ import express from 'express';
 import SubjectController from "../controllers/SubjectController";
 import HTTPError from "../HTTPError";
 
-let ExpressBrute = require("express-brute");
-let store = new ExpressBrute.MemoryStore();
-
 let router = express.Router();
 
-let search_brute = new ExpressBrute(store, {
+/*let search_brute = new ExpressBrute(store, {
 
     freeRetries: 20,
     minWait: 1 * 1000, // 10 secondi di attesa dopo 10 richieste consecutive
@@ -17,7 +14,7 @@ let search_brute = new ExpressBrute(store, {
         return HTTPError.TOO_MANY_REQUESTS.addParam('see_you_at', new Date(valid_date).getTime()).toResponse(res)
     }
 
-})
+})*/
 
 
 router.get('/', async (req: express.Request, res: express.Response) => {

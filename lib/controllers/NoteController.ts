@@ -4,7 +4,8 @@ import crypto from "crypto"
 import { readdir, rmdirSync } from 'fs-extra';
 import { User } from "./UserController";
 import redis from '../redis'
-
+import utils from '../utils'
+ 
 const self = {
     
     search: async(query_string: string): Promise<string | null | Error> => {
@@ -94,7 +95,8 @@ const self = {
                 notes.uploaded_at, 
                 notes.storage_url, 
                 notes.subject_id, 
-                notes.author_id 
+                notes.author_id,
+                notes.visits 
                 ${translateSubject ? ", subjects.name subject_name" : ""} 
             FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} 
             WHERE notes.id = ? 
@@ -102,6 +104,20 @@ const self = {
         
         if(!result.length)
             return null;
+
+        const release = await utils.mutex.acquire();
+
+        try{
+
+            await db.query(`
+                UPDATE notes SET visits = visits + 1 WHERE subject_id = ? AND id = ?
+            `, [subject_id, id]);
+
+        }finally{
+
+            await release();
+
+        }        
 
         let files = await readdir(`./public/notes/${result[0].author_id}/${id}`);
 
@@ -130,13 +146,15 @@ const self = {
                 notes.id note_id, 
                 notes.title, 
                 notes.uploaded_at, 
-                notes.storage_url, 
+                notes.storage_url,
+                notes.visits, 
                 notes.subject_id, 
                 notes.author_id ${translateSubjects ? ", subjects.name subject_name" : ""} 
             FROM notes ${translateSubjects ? "JOIN subjects ON notes.subject_id = subjects.id" : ""}  
                 WHERE ${subjectId ? "notes.subject_id = ? AND" : ""}
                 ${authorId ? "notes.author_id = ? AND" : "" }
                 1 = 1
+            ${orderBy ? ((orderBy.toLowerCase() === 'visits') ? "ORDER BY notes.visits DESC": ""): ""}
             ) res
             WHERE 
             res.number > ? 

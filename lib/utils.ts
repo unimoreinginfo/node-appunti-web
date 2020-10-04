@@ -1,14 +1,17 @@
 import { randomBytes } from "crypto"
 import HTTPError from './HTTPError'
 import { unlink } from "fs-extra";
+import { Mutex } from 'async-mutex';
 
 interface TestableParam{
     name: string,
     re: RegExp
 }
+let mutex = new Mutex();
 
 let self = {
 
+    mutex,
     deleteTmpFiles: async(files: any): Promise<void> => {
 
         let work = [];
@@ -26,6 +29,27 @@ let self = {
             }
 
     },
+
+    deleteTmpFile: async(file: any): Promise<void> => {
+
+        await unlink(file.tempFilePath)
+
+    },
+
+    mimetypes: [
+        "text/plain",
+        "application/pdf",
+        "application/msword", // doc
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // docx
+        "application/vnd.oasis.opendocument.text", // odt
+        "image/jpeg",
+        "image/png",
+        "application/zip",
+        "application/x-7z-compressed",
+        "application/gzip",
+        "application/x-xz",
+        "application/x-bzip2",
+    ],
 
     requiredParameters: (type: string = "GET", params: (string | TestableParam)[]) => {
 

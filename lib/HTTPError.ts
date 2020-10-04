@@ -34,6 +34,7 @@ export default class HTTPError{
     public static readonly MAX_SIZE_REACHED = new HTTPError('max_storage_size_reached', 400);
     public static readonly TOO_MANY_FILES = new HTTPError('too_many_files', 413);
     public static readonly TOO_MANY_REQUESTS = new HTTPError('too_many_requests', 429);
+    public static readonly INVALID_MIMETYPE = new HTTPError('invalid_mimetype', 400);
 
     public static readonly missingParameters = (...params: string[]) =>
         new HTTPError('missing_parameters', 400).addParam('missing', params);

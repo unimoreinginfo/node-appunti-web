@@ -6,41 +6,9 @@ import { randomBytes } from "crypto";
 import HTTPError from "../HTTPError";
 import utils from "../utils"
 
-let ExpressBrute = require("express-brute");
-let store = new ExpressBrute.MemoryStore();
-
-let register_brute = new ExpressBrute(store, {
-
-    freeRetries: 3,
-    minWait: 24 * 60 * 60 * 1000,
-    maxWait: 24 * 60 * 60 * 1000,
-    lifetime: 24 * 60 * 60,
-    refreshTimeoutOnRequest: false,
-    attachResetToRequest: false,
-    failCallback: (req, res, next, valid_date) => {
-        return HTTPError.TOO_MANY_REQUESTS.addParam('see_you_at', parseInt((new Date(valid_date).getTime() / 1000).toFixed(0))).toResponse(res)
-    }
-
-})
-
-let login_brute = new ExpressBrute(store, {
-
-    freeRetries: 10,
-    minWait: 24 * 60 * 60 * 1000,
-    maxWait: 24 * 60 * 60 * 1000,
-    lifetime: 24 * 60 * 60,
-    refreshTimeoutOnRequest: false,
-    attachResetToRequest: false,
-    failCallback: (req, res, next, valid_date) => {
-        return HTTPError.TOO_MANY_REQUESTS.addParam('see_you_at', parseInt((new Date(valid_date).getTime() / 1000).toFixed(0))).toResponse(res)
-    }
-
-})
-
 let router = express.Router();
 
 router.post('/register|signup',
-    register_brute.prevent,
     utils.requiredParameters("POST", ["name", "surname", {
         name: 'email',
         re: utils.email_regex
@@ -85,7 +53,7 @@ router.post('/register|signup',
 
 });
 
-router.post('/login|signin', login_brute.prevent, utils.requiredParameters("POST", ["email", "password"]), async(req: express.Request, res: express.Response) => {
+router.post('/login|signin', utils.requiredParameters("POST", ["email", "password"]), async(req: express.Request, res: express.Response) => {
 
     let email = xss.inHTMLData(req.body.email),
         password = xss.inHTMLData(req.body.password),

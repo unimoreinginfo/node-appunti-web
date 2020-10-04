@@ -5,12 +5,9 @@ import utils from "../utils"
 import HTTPError from '../HTTPError';
 import bcrypt from "bcryptjs"
 
-let ExpressBrute = require("express-brute");
-let store = new ExpressBrute.MemoryStore();
-
 let router = express.Router();
 
-let search_brute = new ExpressBrute(store, {
+/*let search_brute = new ExpressBrute(store, {
 
     freeRetries: 20,
     minWait: 1 * 1000, // 10 secondi di attesa dopo 10 richieste consecutive
@@ -35,7 +32,7 @@ let change_password_brute = new ExpressBrute(store, {
     }
 
 })
-
+*/
 
 router.get('/', AuthController.middleware, AuthController.adminMiddleware, async (req: express.Request, res: express.Response) => {
 
@@ -71,7 +68,7 @@ router.get('/size', AuthController.middleware, async(req: express.Request, res: 
 
 })
 
-router.get('/:userId', search_brute.prevent, async (req: express.Request, res: express.Response) => {
+router.get('/:userId', async (req: express.Request, res: express.Response) => {
     let result = await UserController.getUser(req.params.userId);
     if (!result)
         return HTTPError.USER_NOT_FOUND.toResponse(res);
@@ -119,7 +116,6 @@ router.post('/:user_id',
     });
 
 router.post('/:user_id/password',
-    change_password_brute.prevent,
     [AuthController.middleware, utils.requiredParameters("POST", ["new_password"]), AuthController.userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
         let me = JSON.parse(res.get('user'));

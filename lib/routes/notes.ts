@@ -8,39 +8,9 @@ import HTTPError from '../HTTPError';
 import xss = require("xss-filters");
 import UserController from '../controllers/UserController';
 
-let ExpressBrute = require('express-brute');
-let store = new ExpressBrute.MemoryStore()
-
-let search_brute = new ExpressBrute(store, {
-
-    freeRetries: 25,
-    minWait: 0.5 * 1000, // 0.5 secondi di attesa fra ogni richiesta dopo 25 richieste consecutive
-    maxWait: 5 * 60 * 1000, // 5m di attesa mano a mano che si continua a fare richieste oltre la time frame
-    refreshTimeoutOnRequest: true,
-    failCallback: (req, res, next, valid_date) => {
-        return HTTPError.TOO_MANY_REQUESTS.addParam('see_you_at', parseInt((new Date(valid_date).getTime() / 1000).toFixed(0))).toResponse(res)
-    }
-
-})
-
-let upload_brute = new ExpressBrute(store, {
-
-    freeRetries: 30,
-    minWait: 24 * 60 * 60 * 1000,
-    maxWait: 24 * 60 * 60 * 1000,
-    lifetime: 24 * 60 * 60,
-    refreshTimeoutOnRequest: false,
-    attachResetToRequest: false,
-    failCallback: (req, res, next, valid_date) => {
-        return HTTPError.TOO_MANY_REQUESTS.addParam('see_you_at', parseInt((new Date(valid_date).getTime() / 1000).toFixed(0))).toResponse(res)
-    }
-
-})
-
-
 let router = express.Router();
 
-router.get('/', search_brute.prevent, async (req: express.Request, res: express.Response) => {
+router.get('/', async (req: express.Request, res: express.Response) => {
     try{
 
         const subjectId = parseInt(req.query.subject_id as string);
@@ -62,7 +32,7 @@ router.get('/', search_brute.prevent, async (req: express.Request, res: express.
     }
 });
 
-router.get('/search', search_brute.prevent, utils.requiredParameters("GETq" /* GETq prende i parametri in req.query al posto che in req.params*/, ["q"]), async(req: express.Request, res: express.Response) => {
+router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri in req.query al posto che in req.params*/, ["q"]), async(req: express.Request, res: express.Response) => {
 
     const query = req.query.q as string;
 
@@ -122,7 +92,7 @@ router.post('/:subject_id/:note_id', AuthController.middleware, utils.requiredPa
 
 });
 
-router.post('/', upload_brute.prevent, AuthController.middleware, utils.requiredParameters("POST", ["title", "subject_id"]), async (req, res: express.Response) => {
+router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["title", "subject_id"]), async (req, res: express.Response) => {
 
     let file;
     try{
@@ -137,6 +107,7 @@ router.post('/', upload_brute.prevent, AuthController.middleware, utils.required
         let subject = await SubjectController.getSubject(subject_id);
         let size = await UserController.getUserSize(me.id);
         let current_size = 0;
+        let delete_queue = new Array();
 
         if(file.length > process.env.MAX_FILES_PER_REQUEST!){
 
@@ -144,14 +115,22 @@ router.post('/', upload_brute.prevent, AuthController.middleware, utils.required
             return HTTPError.TOO_MANY_FILES.addParam('max_files', process.env.MAX_FILES_PER_REQUEST!).toResponse(res);
 
         }
-            
-        
-        if(file.hasOwnProperty("name"))
+    
+        if(file.hasOwnProperty("name")){
+            /*if(!(file.mimetype in utils.mimetypes)){
+                await utils.deleteTmpFiles(file);
+                return HTTPError.INVALID_MIMETYPE.toResponse(res);
+            }*/
+                
             current_size += file.size;
+        }
         else{
             file.forEach(f => {
 
-                current_size += f.size;
+                /*if(!(f.mimetype in utils.mimetypes))
+                    delete_queue.push(utils.deleteTmpFile(f))
+                else */
+                    current_size += f.size;
 
             })
         }
@@ -163,6 +142,7 @@ router.post('/', upload_brute.prevent, AuthController.middleware, utils.required
 
         }
 
+        // await Promise.all(delete_queue);
         await NoteController.addNotes(me.id, title, file, subject_id);
         await UserController.setUserSize(me.id);
 
@@ -178,7 +158,7 @@ router.post('/', upload_brute.prevent, AuthController.middleware, utils.required
 
 });
 
-router.get('/:subject_id/:note_id', search_brute.prevent, async (req: express.Request, res: express.Response) => {
+router.get('/:subject_id/:note_id', async (req: express.Request, res: express.Response) => {
     try{
         let r = await NoteController.getNote(
             req.params.note_id as string,
