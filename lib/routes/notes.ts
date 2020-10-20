@@ -7,6 +7,7 @@ import utils from '../utils';
 import HTTPError from '../HTTPError';
 import xss = require("xss-filters");
 import UserController from '../controllers/UserController';
+import { debufferize } from '../db'  
 
 let router = express.Router();
 
@@ -21,7 +22,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
     
         res.json({
             success: true,
-            result: (await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1]
+            result: debufferize((await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1])
         }); // non ho capito perché ritorni un array in un array ok???
 
     }catch(err){

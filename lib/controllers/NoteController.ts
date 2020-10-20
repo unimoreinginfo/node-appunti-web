@@ -31,6 +31,7 @@ const self = {
                     notes.uploaded_at, 
                     notes.subject_id, 
                     notes.visits, 
+                    notes.author_id,
                     aes_decrypt(users.name, ${ core.escape(process.env.AES_KEY!) }) as name, 
                     aes_decrypt(users.surname, ${ core.escape(process.env.AES_KEY!) }) as surname 
                     from notes left join users on notes.author_id = users.id) res
@@ -165,9 +166,12 @@ const self = {
                 notes.uploaded_at, 
                 notes.storage_url,
                 notes.visits, 
+                aes_decrypt(users.name, ${ core.escape(process.env.AES_KEY!) }) as name, 
+                aes_decrypt(users.surname, ${ core.escape(process.env.AES_KEY!) }) as surname,
                 notes.subject_id, 
                 notes.author_id ${translateSubjects ? ", subjects.name subject_name" : ""} 
-            FROM notes ${translateSubjects ? "JOIN subjects ON notes.subject_id = subjects.id" : ""}  
+                FROM notes ${translateSubjects ? "JOIN subjects ON notes.subject_id = subjects.id" : ""} 
+                JOIN users on users.id = notes.author_id 
                 WHERE ${subjectId ? "notes.subject_id = ? AND" : ""}
                 ${authorId ? "notes.author_id = ? AND" : "" }
                 1 = 1
