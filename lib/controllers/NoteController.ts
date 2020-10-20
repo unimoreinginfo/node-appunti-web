@@ -1,4 +1,4 @@
-import db, { core } from "../db";
+import db, { core, debufferize } from "../db";
 import path from "path";
 import crypto from "crypto"
 import { readdir, rmdirSync } from 'fs-extra';
@@ -8,27 +8,44 @@ import utils from '../utils'
  
 const self = {
     
-    search: async(query_string: string): Promise<string | null | Error> => {
+    search: async(query_string: string, page: number): Promise<string | null | Error> => {
 
         try{
-
-            let cached = await redis.get('notes', query_string);
+            
+            let cached = await redis.get('notes', `${query_string}-${page.toString()}`);
             if(cached){
-                console.log(`returning cached result for query: ${query_string}`);
+                console.log(`returning cached result for query: ${query_string}-${page.toString()}`);
                 return cached;
             }
-
+            
+            let s = (page - 1) * 10;
+            console.log(s, s + 10);
+            
             let query = await db.query(`
+                SET @row = 0;
+                
+                select * from (
+                    select (@row := @row + 1) as number,
+                    notes.id, 
+                    notes.title, 
+                    notes.uploaded_at, 
+                    notes.subject_id, 
+                    notes.visits, 
+                    aes_decrypt(users.name, ${ core.escape(process.env.AES_KEY!) }) as name, 
+                    aes_decrypt(users.surname, ${ core.escape(process.env.AES_KEY!) }) as surname 
+                    from notes left join users on notes.author_id = users.id) res
+                    where res.title like ? and res.number > ? and res.number <= ?
 
-                SELECT id, title, subject_id FROM notes WHERE title LIKE ?
-
-            `, [`%${query_string}%`]); // output ridotto, devo tenere sta roba in RAM, quindi...
-
-            if(!query.results.length) 
+            `, [`%${query_string}%`, s, s + 10], true); // addio RAM            
+            
+            if(!query.results[1].length){
+                await redis.set('notes', `${query_string}-${page.toString()}`, "");
                 return null;
-
-            let stringified = JSON.stringify(query.results) as string;
-            await redis.set('notes', query_string, stringified);
+            }
+            
+            let r = debufferize(query.results[1]);
+            let stringified = JSON.stringify(r) as string;
+            await redis.set('notes', `${query_string}-${page.toString()}`, stringified);
 
             return stringified;
 

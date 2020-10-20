@@ -35,9 +35,13 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri in req.query al posto che in req.params*/, ["q"]), async(req: express.Request, res: express.Response) => {
 
     const query = req.query.q as string;
+    let page = parseInt(req.query.page as string);
+
+    if(isNaN(page) || page <= 0)
+        page = 1;
 
     try{
-        let result = await NoteController.search(query);
+        let result = await NoteController.search(query, page);
         let parsed = JSON.parse(result as string);
         if(!parsed)
             return res.json({
