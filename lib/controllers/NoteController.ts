@@ -8,24 +8,24 @@ import utils from '../utils'
  
 const self = {
     
-    search: async(query_string: string, page: number): Promise<string | null | Error> => {
+    search: async(query_string: string, page: number): Promise<{ result: any, pages: number } | null> => {
 
         try{
             
             let cached = await redis.get('notes', `${query_string}-${page.toString()}`);
             if(cached){
                 console.log(`returning cached result for query: ${query_string}-${page.toString()}`);
-                return cached;
+                return JSON.parse(cached as string);
             }
             
             let s = (page - 1) * 10;
-            console.log(s, s + 10);
             
-            let query = await db.query(`
-                SET @row = 0;
-                
-                select * from (
-                    select (@row := @row + 1) as number,
+            let pages = Math.trunc((await db.query(`
+                select count(*) as count from notes where title like ?
+            `, [`%${query_string}%`])).results[0].count  / 10) + 1 // ci sarà sicuramente un modo migliore di farlo, ma è l'una e non ho voglia            
+
+            let query = await db.query(`                    
+                    select 
                     notes.id, 
                     notes.title, 
                     notes.uploaded_at, 
@@ -34,21 +34,21 @@ const self = {
                     notes.author_id,
                     aes_decrypt(users.name, ${ core.escape(process.env.AES_KEY!) }) as name, 
                     aes_decrypt(users.surname, ${ core.escape(process.env.AES_KEY!) }) as surname 
-                    from notes left join users on notes.author_id = users.id) res
-                    where res.title like ? and res.number > ? and res.number <= ?
+                    from notes left join users on notes.author_id = users.id
+                    where title like ? limit 10 offset ?
 
-            `, [`%${query_string}%`, s, s + 10], true); // addio RAM            
+            `, [`%${query_string}%`, s]); // addio RAM       
             
-            if(!query.results[1].length){
+            if(!query.results.length){
                 await redis.set('notes', `${query_string}-${page.toString()}`, "");
                 return null;
             }
-            
-            let r = debufferize(query.results[1]);
+
+            let r = {result: debufferize(query.results), pages};
             let stringified = JSON.stringify(r) as string;
             await redis.set('notes', `${query_string}-${page.toString()}`, stringified);
 
-            return stringified;
+            return r;
 
         }catch(err){
 

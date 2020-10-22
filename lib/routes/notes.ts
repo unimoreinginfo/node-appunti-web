@@ -42,17 +42,19 @@ router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri
         page = 1;
 
     try{
-        let result = await NoteController.search(query, page);
-        let parsed = JSON.parse(result as string);
-        if(!parsed)
+        let r = await NoteController.search(query, page);
+        
+        if(!r)
             return res.json({
                 success: true,
+                pages: 0,
                 result: []
             });
 
         res.json({
             success: true,
-            result: parsed            
+            pages: r.pages,
+            result: r.result       
         });
 
     }catch(err){
