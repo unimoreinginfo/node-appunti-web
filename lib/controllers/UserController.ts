@@ -59,9 +59,8 @@ export default {
 
         return (await db.query(`
         
-            SELECT * FROM (
-                SELECT AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email FROM users) AS result
-            WHERE result.email = ?`, 
+            SELECT  AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email FROM users 
+            HAVING result.email = ?`, 
         
         [email])).results.length > 0;
         
@@ -140,8 +139,6 @@ export default {
                 FROM users WHERE id = ?
             `, [userId], true));
 
-        console.log(users.results.length);
-
         if(users.results.length == 0)
             return null;
 
@@ -167,17 +164,16 @@ export default {
     },
 
     getUserByEmail: async function (email: string): Promise<User | null> {
-        let user = (await db.query(`SELECT * FROM
-                ( SELECT 
+        let user = (await db.query(`
+                SELECT 
                     id, 
                     admin,
                     password,
                     AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                     AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
                     AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
-                    AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimoreId FROM users )
-                T
-                WHERE T.email = ?
+                    AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimoreId FROM users 
+                HAVING email = ?
             `, [email], true));
         
         if(!user.results.length)
@@ -190,9 +186,7 @@ export default {
 
         let s = (start - 1) * 10;
         let users = (await db.query(`
-            SET @row = 0;
-            SELECT * FROM (  
-                SELECT (@row := @row + 1) as number,
+            SELECT 
                 id, 
                 admin,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
@@ -200,13 +194,13 @@ export default {
                 AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
                 AES_DECRYPT(unimore_id, ${ core.escape(process.env.AES_KEY!) }) unimore_id
                 FROM users
-            ) res WHERE res.number > ? AND res.number <= ?
-            `, [s, s + 10])).results[1];
-
+            LIMIT 10 OFFSET ?
+            `, [s]))
+        
         if(!users.results.length)
             return null
 
-        return debufferize(users);
+        return debufferize(users.results);
         
     },
 

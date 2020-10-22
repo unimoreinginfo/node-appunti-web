@@ -159,8 +159,7 @@ const self = {
 
             SET @row = 0;
 
-            SELECT * FROM (
-                SELECT (@row := @row + 1) as number,
+            SELECT 
                 notes.id note_id, 
                 notes.title, 
                 notes.uploaded_at, 
@@ -176,10 +175,7 @@ const self = {
                 ${authorId ? "notes.author_id = ? AND" : "" }
                 1 = 1
             ${orderBy ? ((orderBy.toLowerCase() === 'visits') ? "ORDER BY notes.visits DESC": ""): ""}
-            ) res
-            WHERE 
-            res.number > ? 
-            AND res.number <= ?
+                LIMIT 10 OFFSET ?
             ${orderBy ? ((orderBy.toLowerCase() === "asc" || orderBy.toLowerCase() === "desc") ? `ORDER BY res.title ${orderBy}` : ""): ""}
         `;
 
@@ -190,7 +186,6 @@ const self = {
         if (authorId) params.push(authorId);
 
         params.push(s);
-        params.push(s + 10)
 
         console.log(query);
 
