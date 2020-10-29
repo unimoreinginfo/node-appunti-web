@@ -86,7 +86,7 @@ const self = {
             [notes_id, title, new Date(), `/public/notes/${author_id}/${notes_id}`, subject_id, author_id]
         );
 
-        return q.results.affectedRows > 0;        
+        return { written_files: file.length, url: `/notes/${subject_id}/${notes_id}` };        
 
     },
 

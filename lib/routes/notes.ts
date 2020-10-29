@@ -2,12 +2,13 @@ import express from 'express';
 import NoteController from "../controllers/NoteController";
 import AuthController from "../controllers/AuthController";
 import SubjectController from "../controllers/SubjectController";
-import { post } from './main';
 import utils from '../utils';
 import HTTPError from '../HTTPError';
 import xss = require("xss-filters");
 import UserController from '../controllers/UserController';
-import { debufferize } from '../db'  
+import { debufferize } from '../db'
+import { unlink } from 'fs-extra'
+import path from 'path'
 
 let router = express.Router();
 
@@ -94,7 +95,7 @@ router.post('/:subject_id/:note_id', AuthController.middleware, utils.requiredPa
         });
         
     }catch(err){
-
+        
         return HTTPError.GENERIC_ERROR.toResponse(res);
     
     }
@@ -103,59 +104,67 @@ router.post('/:subject_id/:note_id', AuthController.middleware, utils.requiredPa
 
 router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["title", "subject_id"]), async (req, res: express.Response) => {
 
-    let file;
     try{
-
+        
         let me = JSON.parse(res.get('user'));
 
-        if ((req as any).files === undefined || (file = (req as any).files.notes) === undefined)
+        if (!(req as any).files.notes)
             return HTTPError.missingParameters("notes").toResponse(res);
-
+    
         let title = xss.inHTMLData(req.body.title);
         let subject_id = parseInt(xss.inHTMLData(req.body.subject_id));
         let subject = await SubjectController.getSubject(subject_id);
         let size = await UserController.getUserSize(me.id);
         let current_size = 0;
-        let delete_queue = new Array();
+        let delete_queue = new Array(), ok_queue = new Array(); 
+        let files = (req as any).files.notes;    
 
-        if(file.length > process.env.MAX_FILES_PER_REQUEST!){
-
-            await utils.deleteTmpFiles(file);
-            return HTTPError.TOO_MANY_FILES.addParam('max_files', process.env.MAX_FILES_PER_REQUEST!).toResponse(res);
-
-        }
-    
-        if(file.hasOwnProperty("name")){
-            /*if(!(file.mimetype in utils.mimetypes)){
-                await utils.deleteTmpFiles(file);
+        if(files.hasOwnProperty("name")){
+            if(!utils.mimetypes.includes(files.mimetype)){
+                await utils.deleteTmpFiles(files);
                 return HTTPError.INVALID_MIMETYPE.toResponse(res);
-            }*/
-                
-            current_size += file.size;
+            }
+            ok_queue.push(files);
+            current_size += files.size;
         }
         else{
-            file.forEach(f => {
 
-                /*if(!(f.mimetype in utils.mimetypes))
-                    delete_queue.push(utils.deleteTmpFile(f))
-                else */
+            if(files.length > process.env.MAX_FILES_PER_REQUEST!){
+
+                await utils.deleteTmpFiles(files);
+                return HTTPError.TOO_MANY_FILES.addParam('max_files', process.env.MAX_FILES_PER_REQUEST!).toResponse(res);
+
+            }
+
+            files.forEach(f => {
+                
+                if(!utils.mimetypes.includes(f.mimetype)){
+                    delete_queue.push(unlink(path.resolve(f.tempFilePath)))
+                }
+                else{
+                    ok_queue.push(f);
                     current_size += f.size;
+                }
 
             })
         }
 
         if(current_size + size > parseInt(process.env.MAX_USER!) * 1024 * 1024){
             
-            await utils.deleteTmpFiles(file);
+            await utils.deleteTmpFiles(files);
             return HTTPError.MAX_SIZE_REACHED.toResponse(res);
 
         }
 
-        // await Promise.all(delete_queue);
-        await NoteController.addNotes(me.id, title, file, subject_id);
+        if(!ok_queue.length){
+            return HTTPError.INVALID_MIMETYPE.toResponse(res);
+        }
+        
+        await Promise.all(delete_queue);
+        let r = await NoteController.addNotes(me.id, title, ok_queue, subject_id);
         await UserController.setUserSize(me.id);
 
-        res.json({ success: true });
+        res.json({ success: true, written_files: r.written_files, url: r.url });
 
     }catch(err){
         

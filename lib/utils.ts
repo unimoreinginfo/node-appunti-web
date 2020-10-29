@@ -2,6 +2,7 @@ import { randomBytes } from "crypto"
 import HTTPError from './HTTPError'
 import { unlink } from "fs-extra";
 import { Mutex } from 'async-mutex';
+import path from 'path'
 
 interface TestableParam{
     name: string,
@@ -13,10 +14,11 @@ let self = {
 
     mutex,
     deleteTmpFiles: async(files: any): Promise<void> => {
+        try{
 
-        let work = [];
+            let work = [];
             if(files.hasOwnProperty("name"))
-                await unlink(files.tempFilePath)
+                await unlink(path.resolve(files.tempFilePath))
             else{
                 let work = new Array();
                 files.forEach(f => {
@@ -28,11 +30,11 @@ let self = {
                 await Promise.all(work)
             }
 
-    },
+        }catch(err){
 
-    deleteTmpFile: async(file: any): Promise<void> => {
+            return Promise.reject(err)
 
-        await unlink(file.tempFilePath)
+        }
 
     },
 
