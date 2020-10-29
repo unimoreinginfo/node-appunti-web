@@ -61,7 +61,6 @@ let self = {
             let invalid = new Array();
 
             for (var i = 0; i < params.length; i++) {
-                console.log(params[i]);
                 
                 if(params[i].hasOwnProperty("name")){
 
@@ -79,8 +78,6 @@ let self = {
                         })
 
                 }else{
-                    
-                    console.log("is string");
                     
                     if (!bodyType[<string>params[i]])
                         missing.push(params[i])

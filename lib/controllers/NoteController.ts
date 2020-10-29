@@ -14,7 +14,6 @@ const self = {
             
             let cached = await redis.get('notes', `${query_string}-${page.toString()}`);
             if(cached){
-                console.log(`returning cached result for query: ${query_string}-${page.toString()}`);
                 return JSON.parse(cached as string);
             }
             
@@ -51,8 +50,6 @@ const self = {
             return r;
 
         }catch(err){
-
-            console.log(err);
             
             return Promise.reject(err);
 
@@ -152,12 +149,15 @@ const self = {
 
         */
 
-        let s = (start - 1) * 10; // pagine di 10 in 10        
-        
-        // non abbiamo mysql 8 quindi non esiste row_number(), vabbe
-        let query = `
+        let s = (start - 1) * 10; // pagine di 10 in 10   
+        let pages = Math.trunc((await db.query(`
+                select count(*) as count from notes
+            `)).results[0].count  / 10) + 1   
 
-            SET @row = 0;
+        if(start > pages)
+            return { result: [], pages };   
+        
+        let query = `
 
             SELECT 
                 notes.id note_id, 
@@ -187,15 +187,12 @@ const self = {
 
         params.push(s);
 
-        console.log(query);
-
-        return await db.query(query, params);
+        return {result: (await db.query(query, params)).results, pages};
     },
 
     deleteNote: async function (id: string, subject_id: number) {
        
         let s = await db.query("SELECT * FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);
-        console.log(id, s);
         
         if(s.results.length > 0){
             await db.query("DELETE FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);

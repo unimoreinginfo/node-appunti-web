@@ -46,7 +46,6 @@ router.post('/register|signup',
 
     }catch(err){
 
-        console.log(err);
         return HTTPError.GENERIC_ERROR.toResponse(res);
 
     }
@@ -62,8 +61,6 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
     // TODO: captcha
 
     user = await AuthController.loginCheck(email, password) as User;
-
-    console.log(user);
     
     if(user == null)
         return HTTPError.INVALID_CREDENTIALS.toResponse(res);    
@@ -79,14 +76,11 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
         let refresh_token = randomBytes(128).toString('hex');
         
         await AuthController.addRefreshToken(refresh_token, user.id);
-        console.log(refresh_token);
 
         res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST, sameSite: 'none', maxAge: parseInt(process.env.REFRESH_TOKEN_TIMEOUT_MILLISECONDS as string), httpOnly: true, secure: true});
         res.json({success: true, auth_token, refresh_token_expiry: ((Date.now() / 1000) + parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS))).toFixed(0)}); 
         
     }catch(err){
-
-        console.log(err); // debug
         
         return HTTPError.GENERIC_ERROR.toResponse(res);
 

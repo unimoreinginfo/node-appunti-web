@@ -19,15 +19,18 @@ router.get('/', async (req: express.Request, res: express.Response) => {
         const orderBy = req.query.order_by as string;
         const translateSubjects: boolean = ((req.query.translate_subjects as string) || "").length > 0 ? true : false; 
         const start = parseInt(req.query.page as string || "1");
-    
+        let query = await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects);
+        let result = debufferize(query.result);
+
         res.json({
             success: true,
-            result: debufferize((await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects)).results[1])
-        }); // non ho capito perché ritorni un array in un array ok???
+            pages: query.pages,
+            result
+        })
+    
 
     }catch(err){
 
-        console.log(err);
         return HTTPError.GENERIC_ERROR.toResponse(res);
 
     }
@@ -92,7 +95,6 @@ router.post('/:subject_id/:note_id', AuthController.middleware, utils.requiredPa
         
     }catch(err){
 
-        console.log(err);
         return HTTPError.GENERIC_ERROR.toResponse(res);
     
     }
@@ -156,8 +158,6 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
         res.json({ success: true });
 
     }catch(err){
-
-        console.log(err);
         
         return HTTPError.GENERIC_ERROR.toResponse(res);
 
@@ -185,7 +185,7 @@ router.get('/:subject_id/:note_id', async (req: express.Request, res: express.Re
         });
 
     }catch(err){
-        console.log(err);
+
         return HTTPError.GENERIC_ERROR.toResponse(res);
     }
 });
@@ -209,7 +209,6 @@ router.delete('/:subject_id/:note_id', AuthController.middleware, async (req: ex
             success: true
         });
     }catch(err){
-        console.log(err);
         HTTPError.GENERIC_ERROR.toResponse(res);
     }
 });

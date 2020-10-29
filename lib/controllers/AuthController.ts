@@ -29,10 +29,7 @@ const self = {
         let user = await UserController.getUser(me.id);
 
         if(!user)
-            return HTTPError.USER_NOT_FOUND.toResponse(res);
-
-        console.log(me);
-        
+            return HTTPError.USER_NOT_FOUND.toResponse(res);        
 
         if(!user.admin)
             return HTTPError.UNAUTHORIZED.toResponse(res);
@@ -50,7 +47,6 @@ const self = {
             return HTTPError.USER_INFO_ACCESS_UNAUTHORIZED.toResponse(res);
 
         let user = await UserController.getUser(user_id);
-        console.log(me);
         
         if (!user)
             return HTTPError.USER_NOT_FOUND.toResponse(res);
@@ -68,14 +64,10 @@ const self = {
         let refresh_token = req.cookies.ref_token;
         let user;
 
-        console.log(refresh_token);
-
         try {
 
             let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
             let session = await self.getSession(refresh_token);
-
-            console.log(session, jwt_payload);
 
             if(session.user_id != jwt_payload.user_id)
                 return HTTPError.INVALID_CREDENTIALS.toResponse(res);
@@ -96,8 +88,6 @@ const self = {
 
                     let decoded = await jwt.decode(token, { algorithm: 'HS256' });
 
-                    console.log(session.user_id, decoded.user_id);
-
                     if(session.user_id != decoded.user_id)
                         return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
@@ -113,10 +103,8 @@ const self = {
                     }
 
                     if (err instanceof TokenExpiredError) {
-                        console.log("refreshing auth token for %s", session.user_id);
                         
                         let auth_token = await self.signJWT({ user_id: user.id, is_admin: user.admin })
-                        console.log(auth_token);
                         
                         res.header('Authorization', `Bearer ${auth_token}`);
                         res.set('user', JSON.stringify(user));
@@ -151,7 +139,6 @@ const self = {
         try {
             return await db.query("DELETE FROM sessions WHERE refresh_token = ?", [token]);
         } catch (err) {
-            console.log(err);
             return Promise.reject(err);
         }
     },
@@ -160,13 +147,11 @@ const self = {
 
         try {
 
-            console.log(user_id);
             let expiry: number = (new Date().getTime() / 1000) + parseInt(process.env.REFRESH_TOKEN_TIMEOUT_SECONDS!);
             await db.query("INSERT INTO sessions VALUES (?, ?, ?)", [token, user_id, expiry])
 
         } catch (err) {
-
-            console.log(err);
+        
             return Promise.reject(err);
 
         }
@@ -183,7 +168,6 @@ const self = {
                 return null;
 
             let hash = row.password!;
-            console.log(row.id);
 
             let comparison = await bcrypt.compare(password, hash);
 

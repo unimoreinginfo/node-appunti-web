@@ -7,33 +7,6 @@ import bcrypt from "bcryptjs"
 
 let router = express.Router();
 
-/*let search_brute = new ExpressBrute(store, {
-
-    freeRetries: 20,
-    minWait: 1 * 1000, // 10 secondi di attesa dopo 10 richieste consecutive
-    maxWait: 5 * 60 * 1000, // 5m di attesa mano a mano che si continua a fare richieste oltre la time frame
-    refreshTimeoutOnRequest: true,
-    failCallback: (req, res, next, valid_date) => {
-        return HTTPError.TOO_MANY_REQUESTS.addParam('see_you_at', new Date(valid_date).getTime()).toResponse(res)
-    }
-
-})
-
-let change_password_brute = new ExpressBrute(store, {
-
-    freeRetries: 1,
-    minWait: 24 * 60 * 60 * 1000,
-    maxWait: 24 * 60 * 60 * 1000,
-    lifetime: 24 * 60 * 60,
-    refreshTimeoutOnRequest: false,
-    attachResetToRequest: false,
-    failCallback: (req, res, next, valid_date) => {
-        return HTTPError.TOO_MANY_REQUESTS.addParam('see_you_at', parseInt((new Date(valid_date).getTime() / 1000).toFixed(0))).toResponse(res)
-    }
-
-})
-*/
-
 router.get('/', AuthController.middleware, AuthController.adminMiddleware, async (req: express.Request, res: express.Response) => {
 
     let result = await UserController.getUsers(
