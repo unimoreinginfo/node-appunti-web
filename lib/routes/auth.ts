@@ -8,6 +8,42 @@ import utils from "../utils"
 
 let router = express.Router();
 
+router.post('/add_unimore_id', AuthController.middleware, utils.requiredParameters("POST", [{
+    name: 'unimore_id',
+    re: /^\d{6}$/
+}]), async(req: express.Request, res: express.Response) => {
+
+    try{
+
+        let me = JSON.parse(res.get('user'));
+        await UserController.updateUnimoreId(me.id, req.body.unimore_id);
+        await UserController.sendConfirmationEmail(me.id);
+        res.json({
+            success: true
+        })
+
+    }catch(err){
+
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+
+    }
+
+})
+
+router.get('/verify/:token/:user_id', async(req: express.Request, res: express.Response) => {
+
+    let token = req.params.token,
+        id = req.params.user_id;
+
+    if(await UserController.verifyConfirmationPair(id, token)){
+
+        await UserController.updateVerificationStatus(id);
+        return res.end("Account verificato, puoi tornare su https://appunti.me");
+
+    } else return res.end("Che stai a fa")
+
+})
+
 router.post('/register|signup',
     utils.requiredParameters("POST", ["name", "surname", {
         name: 'email',
@@ -26,18 +62,17 @@ router.post('/register|signup',
     if(!unimore_id)
         unimore_id = 0;
 
-    /*
-
-        todo: confirmation email, captcha
-
-    */
-
     try{
 
         if(await UserController.isRegistered(email))
             return HTTPError.USER_EXISTS.toResponse(res);
         
-        await UserController.createUser(name, surname, email, password, 0, unimore_id);
+        let user = await UserController.createUser(name, surname, email, password, 0, unimore_id);
+        await UserController.createConfirmationToken(user.id);
+        
+        if(unimore_id)
+            await UserController.sendConfirmationEmail(user.id);
+
         return res.json({
 
             success: true
@@ -46,6 +81,8 @@ router.post('/register|signup',
 
     }catch(err){
 
+        console.log(err);
+        
         return HTTPError.GENERIC_ERROR.toResponse(res);
 
     }

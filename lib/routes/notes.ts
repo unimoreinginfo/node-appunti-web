@@ -104,9 +104,13 @@ router.post('/:subject_id/:note_id', AuthController.middleware, utils.requiredPa
 
 router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["title", "subject_id"]), async (req, res: express.Response) => {
 
+    console.log("pre setup");
     try{
-        
+
         let me = JSON.parse(res.get('user'));
+
+        if(!(await UserController.isUserVerified(me.id)))
+            return new HTTPError('user_not_verified', 403).toResponse(res);
 
         if (!(req as any).files.notes)
             return HTTPError.missingParameters("notes").toResponse(res);
@@ -118,6 +122,9 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
         let current_size = 0;
         let delete_queue = new Array(), ok_queue = new Array(); 
         let files = (req as any).files.notes;    
+
+        console.log("setup done");
+        
 
         if(files.hasOwnProperty("name")){
             if(!utils.mimetypes.includes(files.mimetype)){
@@ -167,6 +174,8 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
         res.json({ success: true, written_files: r.written_files, url: r.url });
 
     }catch(err){
+        
+        console.log(err);
         
         return HTTPError.GENERIC_ERROR.toResponse(res);
 

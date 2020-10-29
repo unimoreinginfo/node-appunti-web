@@ -64,12 +64,15 @@ const self = {
         let refresh_token = req.cookies.ref_token;
         let user;
 
+        if(!token || !refresh_token)
+            return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+
         try {
 
             let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
-            let session = await self.getSession(refresh_token);
+            let session = await self.getSession(refresh_token);            
 
-            if(session.user_id != jwt_payload.user_id)
+            if(!session || session.user_id != jwt_payload.user_id)
                 return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
             let user = await UserController.getUser(jwt_payload.user_id);
@@ -108,13 +111,19 @@ const self = {
                         
                         res.header('Authorization', `Bearer ${auth_token}`);
                         res.set('user', JSON.stringify(user));
+                        
                     }
 
                     next();
 
                 })
-                .catch(e =>
-                    HTTPError.GENERIC_ERROR.toResponse(res)
+                .catch(e => {
+
+                        console.log(e);
+                        
+                        HTTPError.GENERIC_ERROR.toResponse(res)
+
+                    }
                 );
         }
     },

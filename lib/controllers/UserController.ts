@@ -1,23 +1,98 @@
 import db, { core, debufferize } from "../db";
 import utils from "../utils"
 import bcrypt = require("bcryptjs");
-import crypto from "crypto";
 import { mkdir } from "fs-extra"
 import redis from "../redis";
 import { spawn } from 'child_process'
-
+import { Request, Response, NextFunction } from 'express';
+import HTTPError from "../HTTPError";
+import Mail from "../Mail";
+import path from 'path';
+import { randomBytes } from 'crypto'
+ 
 export interface User{
     id: string,
     name: string,
     surname: string,
     email: string,
     admin: number,
+    verified: number,
     password?: string,
     unimore_id?: number,
 };
 
-export default {
+const self =  {
     hashPassword: async (password: string) => await bcrypt.hash(password, 8),
+
+    updateUnimoreId: async(user_id: string, unimore_id: number) => {
+
+        await db.query("UPDATE users SET unimore_id = ? WHERE id = ?", [unimore_id, user_id]);
+    
+    },
+    
+    isUserVerified: async(user_id: string): Promise<boolean> => {
+
+        let user = await self.getUser(user_id);
+        if(!user)
+            return false;
+        
+        return user.verified > 0;
+
+    },
+
+    createConfirmationToken: async(user_id: string): Promise<string | null> => {
+
+        let user = await self.getUser(user_id);
+        if(!user)
+            return null;
+        
+        let token = randomBytes(64).toString('hex');
+        await db.query("INSERT INTO verification_tokens values(?, ?)", [user_id, token]);
+
+        return token;
+
+    },
+
+    getConfirmationToken: async(user_id: string): Promise<string | null> => {
+
+        let token = (await db.query("SELECT token FROM verification_tokens WHERE id = ?", [user_id]));
+        if(!token.results)
+            return null;
+        
+        return token.results[0].token;
+
+    },
+
+    verifyConfirmationPair: async(user_id: string, token: string): Promise<boolean> => {
+
+        let pair = (await db.query("SELECT * FROM verification_tokens WHERE id = ? AND token = ?", [user_id, token]));
+
+        return pair.results.length > 0;
+
+    },
+
+    updateVerificationStatus: async(user_id: string) => {
+
+        await db.query("UPDATE users SET verified = 1 WHERE id = ?", [user_id]);
+
+    },
+    
+    sendConfirmationEmail: async(user_id: string): Promise<void> => {
+
+        let user = await self.getUser(user_id);
+        if(!user || !user.unimore_id)
+            return;
+
+        let token = await self.getConfirmationToken(user_id);
+
+        let mail = new Mail(`${user.unimore_id}@studenti.unimore.it`, 'Conferma la tua identità', path.resolve('templates/confirm.html'), {
+            name: user.name,
+            link: `${process.env.URI}/auth/verify/${token}/${user_id}`
+        });
+
+        await mail.send();
+
+    },
 
     getUserSize: async(user_id: string): Promise<number> => {
 
@@ -59,22 +134,20 @@ export default {
 
         return (await db.query(`
         
-            SELECT  AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email FROM users 
-            HAVING result.email = ?`, 
+            SELECT AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email FROM users 
+            HAVING email = ?`, 
         
         [email])).results.length > 0;
         
 
     },
 
-    createUser: async function (name: string, surname: string, email: string, password: string, admin: number, unimoreId?: number) {
+    createUser: async function (name: string, surname: string, email: string, password: string, admin: number, unimoreId?: number): Promise<User> {
 
         let id = utils.generateUserId();
 
-        await mkdir(`./public/notes/${id}`);
-
-        return await db.query(`
-            INSERT INTO users VALUES(
+        await db.query(`
+            INSERT INTO users (id, name, surname, email, password, admin, unimore_id) VALUES(
                 ?,
                 AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }),
                 AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) }),
@@ -83,7 +156,11 @@ export default {
                 ?,
                 AES_ENCRYPT(?, ${ core.escape(process.env.AES_KEY!) })
             )
-        `, [id, name, surname, email, await bcrypt.hash(password, 8), admin, unimoreId])
+        `, [id, name, surname, email, await bcrypt.hash(password, 8), admin, unimoreId]);
+
+        await mkdir(`./public/notes/${id}`);
+
+        return { id, name, surname, email, password, admin, unimore_id: unimoreId, verified: 0}
 
     },
 
@@ -132,6 +209,7 @@ export default {
         let users = (await db.query(`SELECT  
                 id, 
                 admin,
+                verified,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                 AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
                 AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
@@ -150,6 +228,7 @@ export default {
                 id, 
                 admin,
                 password,
+                verified,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                 AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
                 AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
@@ -168,6 +247,7 @@ export default {
                 SELECT 
                     id, 
                     admin,
+                    verified,
                     password,
                     AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                     AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
@@ -189,6 +269,7 @@ export default {
             SELECT 
                 id, 
                 admin,
+                verified,
                 AES_DECRYPT(name, ${ core.escape(process.env.AES_KEY!) }) name, 
                 AES_DECRYPT(surname, ${ core.escape(process.env.AES_KEY!) }) surname,  
                 AES_DECRYPT(email, ${ core.escape(process.env.AES_KEY!) }) email, 
@@ -209,3 +290,5 @@ export default {
         return result.results.affectedRows > 0;
     }
 }
+
+export default self;
