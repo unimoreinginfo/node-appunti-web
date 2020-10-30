@@ -44,10 +44,7 @@ export default class Mail{
             subject: this.subject,
             html
 
-        })
-
-        console.log("Mail sent to %s", this.to);
-        
+        })       
 
     }
 

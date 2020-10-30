@@ -80,8 +80,6 @@ router.post('/register|signup',
         })
 
     }catch(err){
-
-        console.log(err);
         
         return HTTPError.GENERIC_ERROR.toResponse(res);
 

@@ -5,6 +5,7 @@ const cors = require('cors');
 const cookiep = require('cookie-parser');
 const body = require("body-parser");
 import HTTPError from './HTTPError'
+import { rateLimiter } from './redis';
 
 export default class Router{
 
@@ -43,6 +44,15 @@ export default class Router{
         this.#app.use(
             body.urlencoded({ limit: "20mb", extended: true, parameterLimit: 100 }),
         );
+        this.#app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+
+            rateLimiter.consume(req.ip)
+                .then(() => next())
+                .catch(() => {
+                    return HTTPError.TOO_MANY_REQUESTS.toResponse(res);
+                })            
+
+        })
 
         this.#app.use('/public', express.static('./public'));
 

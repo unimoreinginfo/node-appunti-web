@@ -66,7 +66,7 @@ const self =  {
     verifyConfirmationPair: async(user_id: string, token: string): Promise<boolean> => {
 
         let pair = (await db.query("SELECT * FROM verification_tokens WHERE id = ? AND token = ?", [user_id, token]));
-
+        await db.query("DELETE FROM verification_tokens WHERE id = ? AND token = ?", [user_id, token]);
         return pair.results.length > 0;
 
     },

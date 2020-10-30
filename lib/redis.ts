@@ -1,4 +1,5 @@
 import redis, { RedisClient } from 'redis';
+import { RateLimiterRedis } from 'rate-limiter-flexible';
 
 class RClient{
     
@@ -14,6 +15,12 @@ class RClient{
             host: this.#host,
             port: this.#port
         })
+
+    }
+
+    get redis(): RedisClient{
+
+        return this.#client;
 
     }
     
@@ -57,6 +64,15 @@ class RClient{
 
 }
 
-export default new RClient(parseInt(process.env.REDIS_PORT || "6379"));
+const client = new RClient(parseInt(process.env.REDIS_PORT || "6379"));
+export default client;
+
+export const rateLimiter = new RateLimiterRedis({
+    storeClient: client.redis,
+    keyPrefix: 'ratelimit',
+    points: 80,
+    duration: 2 * 60 // 80 richieste ogni 2 minuti e non si rompono i maroni
+}) // molto basico, testiamo il traffico di sta roba
+
 export type KeyType = "notes" | "subjects" | "students" 
 export type HKeyType = "size"

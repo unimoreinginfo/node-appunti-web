@@ -80,6 +80,19 @@ const self = {
 
             res.set('user', JSON.stringify(user));
 
+            let user_data = `User data:\n\tid: ${user.id}, name: ${user.name}, surname: ${user.surname}`;
+
+            // logging a caso, devo mettere winston
+            console.log(`
+            =====================================================================
+                Date: ${new Date()}
+                ${req.method} ${req.originalUrl}
+                ${(res.get('user') != undefined) ? user_data : 'unlogged user requesting'}
+                IP: ${req.ip}
+
+            =====================================================================
+            `);
+
             next();
         } catch (err) {
 
@@ -111,15 +124,13 @@ const self = {
                         
                         res.header('Authorization', `Bearer ${auth_token}`);
                         res.set('user', JSON.stringify(user));
-                        
+
                     }
 
                     next();
 
                 })
                 .catch(e => {
-
-                        console.log(e);
                         
                         HTTPError.GENERIC_ERROR.toResponse(res)
 
