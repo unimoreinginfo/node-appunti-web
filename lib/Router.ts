@@ -1,24 +1,20 @@
 import express from 'express';
 const helmet = require('helmet');
 const fileUpload = require('express-fileupload');
-const cors = require('cors');
 const cookiep = require('cookie-parser');
 const body = require("body-parser");
+const cors = require("cors");
 import HTTPError from './HTTPError'
 import { rateLimiter } from './redis';
 
 export default class Router{
 
     #app: express.Application;
-    #whitelist: string[];
     constructor(){
         
         // imo fare una classe per il router ci può aiutare se vogliamo integrare dei microservizi
         // vedremo se sta cosa ha un'utilità oppure no
         this.#app = express();
-        this.#whitelist = [
-            'https://appunti.me'
-        ] // whitelist di domini per il CORS
 
     }
 
@@ -26,17 +22,16 @@ export default class Router{
 
         // facciamo un file separato per ogni gruppo di routes
         // così è tutto molto più organizzato
-
-        let cors_options = {
-            credentials: true,
-            origin: this.#whitelist,
-            allowedHeaders: ['Authorization', 'authorization'],
-            methods: ['GET', 'POST', 'DELETE', 'PUT']
-        }
         
         this.#app.use(helmet());
+        this.#app.use(cors({
+            credentials: true,
+            withCredentials: true,
+            origin: 'https://beta.appunti.me',
+            allowedHeaders: ['Authorization', 'authorization', 'Content-type', 'content-type'],
+            methods: ['GET', 'POST', 'DELETE', 'PUT']
+        }))
         this.#app.use(fileUpload({createParentPath: true, abortOnLimit: '20m', useTempFiles: true, tempFileDir: './tmp'}));
-        this.#app.use(cors(cors_options));
         this.#app.enable("trust proxy");
         this.#app.disable("x-powered-by");
         this.#app.use(cookiep());
@@ -44,7 +39,7 @@ export default class Router{
         this.#app.use(
             body.urlencoded({ limit: "20mb", extended: true, parameterLimit: 100 }),
         );
-        this.#app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+        /*this.#app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
 
             rateLimiter.consume(req.ip)
                 .then(() => next())
@@ -52,7 +47,7 @@ export default class Router{
                     return HTTPError.TOO_MANY_REQUESTS.toResponse(res);
                 })            
 
-        })
+        })*/
 
         this.#app.use('/public', express.static('./public'));
 

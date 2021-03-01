@@ -21,8 +21,12 @@ export default {
         ]);
     },
     
-    getSubject: async function (subject_id: number): Promise<Subject> {
-        const result = await db.query("SELECT * FROM subjects WHERE id = ?", [subject_id]);
+    getSubject: async function (subject_id: number): Promise<Subject | null> {
+        const result = await db.query("SELECT * FROM subjects WHERE id = ?", [subject_id]);       
+
+        if(!result.results.length)
+            return null;
+
         return result.results[0];
     },
 

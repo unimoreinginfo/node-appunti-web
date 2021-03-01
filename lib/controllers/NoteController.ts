@@ -8,20 +8,36 @@ import utils from '../utils'
  
 const self = {
     
-    search: async(query_string: string, page: number): Promise<{ result: any, pages: number } | null> => {
+    search: async(query_string: string, page: number, subject_id?: number, author_id?: string): Promise<{ result: any, pages: number } | null> => {
 
         try{
             
-            let cached = await redis.get('notes', `${query_string}-${page.toString()}`);
+            let redis_query = `${query_string}-${subject_id || "anysubject"}-${author_id || "anyauthor"}-${page.toString()}`
+
+            let cached = await redis.get('notes', redis_query);
+            let params = new Array();
             if(cached){
+                console.log(`returning ${redis_query}`);
+                
                 return JSON.parse(cached as string);
             }
+            params.push(`%${query_string}%`)
+            if(subject_id)
+                params.push(subject_id);
+            if(author_id)
+                params.push(author_id);
             
             let s = (page - 1) * 10;
+
+            params.push(s);
+            
             
             let pages = Math.trunc((await db.query(`
                 select count(*) as count from notes where title like ?
-            `, [`%${query_string}%`])).results[0].count  / 10) + 1 // ci sarà sicuramente un modo migliore di farlo, ma è l'una e non ho voglia            
+                ${(subject_id) ? "and notes.subject_id = ?" : ""}
+                ${(author_id) ? "and notes.author_id = ?" : ""}
+            `, params)).results[0].count  / 10) + 1 // ci sarà sicuramente un modo migliore di farlo, ma è l'una e non ho voglia         
+               
 
             let query = await db.query(`                    
                     select 
@@ -34,18 +50,21 @@ const self = {
                     aes_decrypt(users.name, ${ core.escape(process.env.AES_KEY!) }) as name, 
                     aes_decrypt(users.surname, ${ core.escape(process.env.AES_KEY!) }) as surname 
                     from notes left join users on notes.author_id = users.id
-                    where title like ? limit 10 offset ?
+                    where title like ? 
+                    ${(subject_id) ? "and notes.subject_id = ?" : ""}
+                    ${(author_id) ? "and notes.author_id = ?" : ""}
+                    limit 10 offset ?
 
-            `, [`%${query_string}%`, s]); // addio RAM       
+            `, params); // addio RAM       
             
             if(!query.results.length){
-                await redis.set('notes', `${query_string}-${page.toString()}`, "");
+                await redis.set('notes', redis_query, "");
                 return null;
             }
 
-            let r = {result: debufferize(query.results), pages};
+            let r = { result: debufferize(query.results), pages };
             let stringified = JSON.stringify(r) as string;
-            await redis.set('notes', `${query_string}-${page.toString()}`, stringified);
+            await redis.set('notes', redis_query, stringified);
 
             return r;
 
@@ -111,11 +130,14 @@ const self = {
                 notes.storage_url, 
                 notes.subject_id, 
                 notes.author_id,
-                notes.visits 
+                notes.visits,
+                aes_decrypt(users.name, ${ core.escape(process.env.AES_KEY!) }) as name, 
+                aes_decrypt(users.surname, ${ core.escape(process.env.AES_KEY!) }) as surname
                 ${translateSubject ? ", subjects.name subject_name" : ""} 
             FROM notes ${translateSubject ? "LEFT JOIN subjects ON subjects.id = notes.subject_id" : ""} 
+            LEFT JOIN users ON notes.author_id = users.id
             WHERE notes.id = ? 
-            AND notes.subject_id = ?`, [id, subject_id])).results;
+            AND notes.subject_id = ?`, [id, subject_id], true)).results;
         
         if(!result.length)
             return null;
@@ -139,7 +161,7 @@ const self = {
         return result.length > 0 ? { result, files } : null;
     },
 
-    getNotes: async function (start: number, subjectId?: number, authorId?: string, orderBy?: string, translateSubjects?: boolean) {
+    getNotes: async function (start: number, subjectId?: number, authorId?: string, orderBy?: string, translateSubjects?: boolean, cache?: boolean) {
 
         /*
 
@@ -149,10 +171,32 @@ const self = {
 
         */
 
-        let s = (start - 1) * 10; // pagine di 10 in 10   
+        let redis_query = `${start}-${subjectId || 'allsubjects'}-${authorId || 'allauthors'}-${orderBy || 'anyorder'}-${translateSubjects || 'notranslate'}`
+        
+        if(!cache){
+            let cached_item = await redis.get('notes', redis_query) as string;
+        
+            if(cached_item){
+                console.log("cached");
+                return JSON.parse(cached_item);
+            }
+        }
+
+        let s = (start - 1) * 10; // pagine di 10 in 10 
+        let count_params = new Array();
+        
+
+        if(subjectId)
+            count_params.push(subjectId);
+        
+        if(authorId)
+            count_params.push(authorId);
+
         let pages = Math.trunc((await db.query(`
                 select count(*) as count from notes
-            `)).results[0].count  / 10) + 1   
+                ${subjectId ? `where notes.subject_id = ?` : ''}
+                ${authorId ? `where notes.author_id = ?` : ''}
+            `, count_params)).results[0].count  / 10) + 1   
 
         if(start > pages)
             return { result: [], pages };   
@@ -175,8 +219,9 @@ const self = {
                 ${authorId ? "notes.author_id = ? AND" : "" }
                 1 = 1
             ${orderBy ? ((orderBy.toLowerCase() === 'visits') ? "ORDER BY notes.visits DESC": ""): ""}
+            ${orderBy ? ((orderBy.toLowerCase() === "asc" || orderBy.toLowerCase() === "desc") ? `ORDER BY notes.title ${orderBy}` : ""): ""}
+            ${orderBy ? ((orderBy.toLowerCase() === "date") ? "ORDER BY notes.uploaded_at DESC": ""): ""}
                 LIMIT 10 OFFSET ?
-            ${orderBy ? ((orderBy.toLowerCase() === "asc" || orderBy.toLowerCase() === "desc") ? `ORDER BY res.title ${orderBy}` : ""): ""}
         `;
 
         let params: any[] = [];
@@ -187,7 +232,12 @@ const self = {
 
         params.push(s);
 
-        return {result: (await db.query(query, params)).results, pages};
+        let result = (await db.query(query, params, true)).results
+
+        if(!cache)
+            await redis.set('notes', redis_query, JSON.stringify({result, pages}));
+
+        return {result, pages};
     },
 
     deleteNote: async function (id: string, subject_id: number) {

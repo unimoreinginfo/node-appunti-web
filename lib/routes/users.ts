@@ -23,20 +23,20 @@ router.get('/size', AuthController.middleware, async(req: express.Request, res: 
 
     let me = JSON.parse(res.get('user')) as User;
     let folder_size = await UserController.getUserSize(me.id);
-    let folder_size_kilobytes = (folder_size / 1024).toFixed(2),
-        folder_size_megabytes = (folder_size / (1024 * 1024)).toFixed(2),
-        folder_size_gigabytes = (folder_size / (1024 * 1024 * 1024)).toFixed(2);
+    let folder_size_kilobytes = parseFloat((folder_size / 1024).toFixed(2)),
+        folder_size_megabytes = parseFloat((folder_size / (1024 * 1024)).toFixed(2)),
+        folder_size_gigabytes = parseFloat((folder_size / (1024 * 1024 * 1024)).toFixed(2));
 
     res.json({
         folder_size_bytes: folder_size,
         folder_size_kilobytes,
         folder_size_megabytes,
         folder_size_gigabytes,
-        completion_percentage: (100 * parseFloat(folder_size_megabytes) / parseInt(process.env.MAX_USER!)).toFixed(2),
-        max_folder_size_bytes: parseInt(process.env.MAX_USER!) * 1024 * 1024,
-        max_folder_size_kilobytes: parseInt(process.env.MAX_USER!) * 1024,
-        max_folder_size_megabytes: parseInt(process.env.MAX_USER!),
-        max_folder_size_gigabytes: parseInt(process.env.MAX_USER!) / 1024
+        completion_percentage: parseFloat((100 * folder_size_megabytes / parseInt(process.env.MAX_USER!)).toFixed(2)),
+        max_folder_size_bytes: parseFloat(process.env.MAX_USER!) * 1024 * 1024,
+        max_folder_size_kilobytes: parseFloat(process.env.MAX_USER!) * 1024,
+        max_folder_size_megabytes: parseFloat(process.env.MAX_USER!),
+        max_folder_size_gigabytes: parseFloat(process.env.MAX_USER!) / 1024
     });
 
 })

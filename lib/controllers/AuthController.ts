@@ -22,7 +22,60 @@ const self = {
     truncateSessions: async (): Promise<any> => {
         return await db.query("TRUNCATE sessions");
     },
+    isLogged: async(req: Request, res: Response, next: NextFunction) => {      
 
+        if (!req.headers.authorization){
+            res.locals.isLogged = false;
+            return next();
+        }
+
+        let token = req.headers.authorization.split("Bearer ")[1];
+        let refresh_token = req.cookies.ref_token;       
+
+        if(!token || !refresh_token){
+            res.locals.isLogged = false;
+            return next();
+        }
+
+        try {
+
+            let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
+            let session = await self.getSession(refresh_token);            
+
+            if(!session || session.user_id != jwt_payload.user_id){
+                res.locals.isLogged = false;
+                return next();
+            }
+
+            let user = await UserController.getUser(jwt_payload.user_id);
+            if(!user){
+                res.locals.isLogged = false;
+                return next();
+            }
+            
+            res.locals.isLogged = true;
+
+            next();
+        } catch (err) {
+
+            res.locals.isLogged = false;
+            next();
+
+        }
+
+    },
+    getRefreshToken: async(req: Request, res: Response, next: NextFunction) => {
+
+        if (!req.headers.authorization)
+            return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+
+        let token = req.headers.authorization.split("Bearer ")[1];
+
+        if(!token)
+            return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+
+
+    },
     adminMiddleware: async(req: Request, res: Response, next: NextFunction) => {
 
         let me = JSON.parse(res.get('user'));
@@ -138,7 +191,24 @@ const self = {
                 );
         }
     },
+    getRefreshTokenFromClient: async(client_token: string) => {
 
+        try{
+
+            let token = (await db.query("SELECT refresh_token FROM sessions WHERE auth_token = ?", [client_token]));
+            if(!token.length)
+                return null;
+
+            return token[0]["refresh_token"];
+
+        }catch(err){
+
+            console.log(err);
+            return Promise.reject(null);
+
+        }
+    
+    },
     getSession: async (token: string): Promise<Session | any> => {
         let session = (await db.query("SELECT * FROM sessions WHERE refresh_token = ?", [token]));
         return session.results[0];
@@ -163,12 +233,12 @@ const self = {
         }
     },
 
-    addRefreshToken: async (token: string, user_id: string): Promise<any | Error> => {
+    addRefreshToken: async (token: string, auth_token: string, user_id: string): Promise<any | Error> => {
 
         try {
 
             let expiry: number = (new Date().getTime() / 1000) + parseInt(process.env.REFRESH_TOKEN_TIMEOUT_SECONDS!);
-            await db.query("INSERT INTO sessions VALUES (?, ?, ?)", [token, user_id, expiry])
+            await db.query("INSERT INTO sessions VALUES (?, ?, ?, ?)", [token, user_id, expiry, auth_token])
 
         } catch (err) {
         

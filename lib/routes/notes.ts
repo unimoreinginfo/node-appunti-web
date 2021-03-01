@@ -12,15 +12,17 @@ import path from 'path'
 
 let router = express.Router();
 
-router.get('/', async (req: express.Request, res: express.Response) => {
+router.get('/', AuthController.isLogged, async (req: express.Request, res: express.Response) => {
     try{
+
+        console.log(res.locals.isLogged);
 
         const subjectId = parseInt(req.query.subject_id as string);
         const authorId = req.query.author_id as string;
         const orderBy = req.query.order_by as string;
         const translateSubjects: boolean = ((req.query.translate_subjects as string) || "").length > 0 ? true : false; 
         const start = parseInt(req.query.page as string || "1");
-        let query = await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects);
+        let query = await NoteController.getNotes(start, subjectId, authorId, orderBy, translateSubjects, res.locals.isLogged);
         let result = debufferize(query.result);
 
         res.json({
@@ -32,6 +34,8 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 
     }catch(err){
 
+        console.log(err);
+        
         return HTTPError.GENERIC_ERROR.toResponse(res);
 
     }
@@ -40,13 +44,16 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri in req.query al posto che in req.params*/, ["q"]), async(req: express.Request, res: express.Response) => {
 
     const query = req.query.q as string;
-    let page = parseInt(req.query.page as string);
+    let page = parseInt(req.query.page as string),
+        subject_id = parseInt((req.query.subject_id as string == 'any') ? '' : req.query.subject_id as string),
+        author_id = req.query.author_id as string;
 
     if(isNaN(page) || page <= 0)
         page = 1;
 
     try{
-        let r = await NoteController.search(query, page);
+
+        let r = await NoteController.search(query, page, subject_id, author_id);
         
         if(!r)
             return res.json({
@@ -62,7 +69,11 @@ router.get('/search', utils.requiredParameters("GETq" /* GETq prende i parametri
         });
 
     }catch(err){
+
+        console.log(err);
+        
         return HTTPError.GENERIC_ERROR.toResponse(res);
+
     }
 
 })

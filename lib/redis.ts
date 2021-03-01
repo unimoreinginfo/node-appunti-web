@@ -34,7 +34,7 @@ class RClient{
                     if(err)
                         return reject(err);
 
-                    return resolve(res);
+                    return resolve(res as string);
 
                 })
             
@@ -53,7 +53,7 @@ class RClient{
                     if(err)
                         return reject(err);
 
-                    return resolve(res);
+                    return resolve(res as string);
 
                 })
             

@@ -110,10 +110,10 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
         let auth_token = await AuthController.signJWT(payload);
         let refresh_token = randomBytes(128).toString('hex');
         
-        await AuthController.addRefreshToken(refresh_token, user.id);
+        await AuthController.addRefreshToken(refresh_token, auth_token, user.id);
 
         res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST, sameSite: 'none', maxAge: parseInt(process.env.REFRESH_TOKEN_TIMEOUT_MILLISECONDS as string), httpOnly: true, secure: true});
-        res.json({success: true, auth_token, refresh_token_expiry: ((Date.now() / 1000) + parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS))).toFixed(0)}); 
+        res.json({success: true, auth_token, refresh_token, refresh_token_expiry: ((Date.now() / 1000) + parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS))).toFixed(0)}); 
         
     }catch(err){
         
@@ -126,12 +126,22 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
 router.get('/user', AuthController.middleware, async(req: express.Request, res: express.Response) => {
 
     let me = JSON.parse(res.get('user'));
-
+    
     res.json({
         success: true,
         result: me
     })
     
 });
+
+router.get('/token/:auth_token', async(req: express.Request, res: express.Response) => {
+
+    let refresh_token = await AuthController.getRefreshTokenFromClient(req.params.auth_token);
+    return res.json({
+        success: true,
+        refresh_token
+    })
+
+})
 
 export = router;
