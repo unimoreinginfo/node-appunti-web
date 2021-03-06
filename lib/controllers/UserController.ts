@@ -111,8 +111,10 @@ const self =  {
                 let size: number;
 
                 size_command.stdout.once('data', async(data) => {
-            
+                    
                     size = parseInt(data.toString('utf-8').split("\t")[0]);
+                    console.log(size);
+                    
                     await db.query('UPDATE users SET size = ? WHERE id = ?', [size, user_id]);
 
                     return resolve(true)

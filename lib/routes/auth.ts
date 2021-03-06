@@ -68,10 +68,10 @@ router.post('/register|signup',
             return HTTPError.USER_EXISTS.toResponse(res);
         
         let user = await UserController.createUser(name, surname, email, password, 0, unimore_id);
+        
         await UserController.createConfirmationToken(user.id);
         
-        if(unimore_id)
-            await UserController.sendConfirmationEmail(user.id);
+        if(unimore_id) await UserController.sendConfirmationEmail(user.id);
 
         return res.json({
 

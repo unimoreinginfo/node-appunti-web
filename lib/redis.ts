@@ -48,7 +48,7 @@ class RClient{
         return new Promise(
             (resolve, reject) => {
 
-                this.#client.set(`${key_type}-${key}`, value, 'EX', parseInt(process.env.REDIS_KEY_EXPIRE_TIME_SECONDS || "1800"), (err, res) => {
+                this.#client.set(`${key_type}-${key}`, value, 'EX', parseInt(process.env.REDIS_KEY_EXPIRE_TIME_SECONDS || "180"), (err, res) => {
 
                     if(err)
                         return reject(err);

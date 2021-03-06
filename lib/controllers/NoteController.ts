@@ -240,13 +240,13 @@ const self = {
         return {result, pages};
     },
 
-    deleteNote: async function (id: string, subject_id: number) {
+    deleteNote: async function (id: string, user_id: string, subject_id: number) {
        
         let s = await db.query("SELECT * FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);
         
         if(s.results.length > 0){
             await db.query("DELETE FROM notes WHERE id = ? AND subject_id = ?", [id, subject_id]);
-            rmdirSync(`./public/notes/${subject_id}/${id}`, { recursive: true });
+            rmdirSync(`./public/notes/${user_id}/${id}`, { recursive: true });
         }
 
         return s.results.length > 0;

@@ -30,7 +30,7 @@ const self = {
         }
 
         let token = req.headers.authorization.split("Bearer ")[1];
-        let refresh_token = req.cookies.ref_token;       
+        let refresh_token = req.cookies.ref_token;     
 
         if(!token || !refresh_token){
             res.locals.isLogged = false;
@@ -38,9 +38,9 @@ const self = {
         }
 
         try {
-
+            
             let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
-            let session = await self.getSession(refresh_token);            
+            let session = await self.getSession(refresh_token);                        
 
             if(!session || session.user_id != jwt_payload.user_id){
                 res.locals.isLogged = false;
@@ -121,7 +121,7 @@ const self = {
             return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
         try {
-
+            
             let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
             let session = await self.getSession(refresh_token);            
 
@@ -148,7 +148,7 @@ const self = {
 
             next();
         } catch (err) {
-
+            
             if (err.message === 'jwt malformed') // lol non c'è TokenMalformedException
                 return HTTPError.MALFORMED_CREDENTIALS.toResponse(res);
 
@@ -175,8 +175,15 @@ const self = {
                         
                         let auth_token = await self.signJWT({ user_id: user.id, is_admin: user.admin })
                         
-                        res.header('Authorization', `Bearer ${auth_token}`);
-                        res.set('user', JSON.stringify(user));
+                        console.log("token expired!");
+
+                        return res.status(401).json({
+                            success: false,
+                            auth_token,
+                            status: 401,
+                            user
+                        })
+                        
 
                     }
 
@@ -203,7 +210,6 @@ const self = {
 
         }catch(err){
 
-            console.log(err);
             return Promise.reject(null);
 
         }

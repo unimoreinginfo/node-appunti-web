@@ -6,9 +6,13 @@ let router = express.Router();
 
 router.get('/:id', async(req: express.Request, res: express.Response) => {
 
+    let id = parseInt(req.params.id as string);
+    if(isNaN(id))
+        return HTTPError.NOT_FOUND.toResponse(res);
+
     try{
 
-        const subject = await SubjectController.getSubject(parseInt(req.params.id as string));
+        const subject = await SubjectController.getSubject(id);
         
         return res.json({
             success: true,

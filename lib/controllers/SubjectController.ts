@@ -31,6 +31,6 @@ export default {
     },
 
     getSubjects: async function () {
-        return await db.query("SELECT * FROM subjects");
+        return await db.query("SELECT * FROM subjects ORDER BY name");
     }
 }

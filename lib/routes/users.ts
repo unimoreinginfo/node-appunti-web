@@ -53,14 +53,9 @@ router.get('/:userId', async (req: express.Request, res: express.Response) => {
 });
 
 router.post('/:user_id',
-    utils.requiredParameters("POST", [
-        "unimore_id",
-        "admin",
-        "name",
-        "surname",
-    ]),
     [AuthController.middleware, AuthController.userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
+
         let me = JSON.parse(res.get('user'));
         let user_id = req.params.user_id;
 
@@ -78,8 +73,8 @@ router.post('/:user_id',
 
         await UserController.updateUser(
             user_id,
-            req.body.name,
-            req.body.surname,
+            req.body.name || me.name,
+            req.body.surname || me.surname,
             req.body.password,
             unimore_id,
             admin
@@ -91,26 +86,42 @@ router.post('/:user_id',
 router.post('/:user_id/password',
     [AuthController.middleware, utils.requiredParameters("POST", ["new_password"]), AuthController.userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
-        let me = JSON.parse(res.get('user'));
-        let user_id = req.params.user_id;
 
-        if (!me.admin) {
-            // The old_password is checked only if the user isn't admin.
-            let old_password = req.body.old_password;
-            if (!old_password)
-                return HTTPError.missingParameters("old_password").toResponse(res);
+        try{
 
-            let user = await UserController.getUser(user_id);
-            if(!user) return HTTPError.USER_NOT_FOUND.toResponse(res);
+            let me = JSON.parse(res.get('user'));
+            let user_id = req.params.user_id;
             
-            let matching = await bcrypt.compare(old_password, user.password!);
-            if (!matching) return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+            if (!me.admin) {
+                
+                // The old_password is checked only if the user isn't admin.
+                let old_password = req.body.old_password;
+                if (!old_password)
+                    return HTTPError.missingParameters("old_password").toResponse(res);
+
+                let user = await UserController.getUserFull(user_id);
+                console.log(user);
+                
+                if(!user) return HTTPError.USER_NOT_FOUND.toResponse(res);
+                
+                let matching = await bcrypt.compare(old_password, user.password!);
+                if (!matching) return HTTPError.INVALID_CREDENTIALS.toResponse(res);
+
+            }
+
+            let new_password = req.body.new_password;
+            await UserController.updateUserPassword(user_id, new_password);
+            
+            return res.json({ success: true });
+
+        }catch(err){
+
+            console.log(err);
+            
+            return HTTPError.GENERIC_ERROR.toResponse(res);
+        
         }
 
-        let new_password = req.body.new_password;
-        await UserController.updateUserPassword(user_id, new_password);
-
-        return res.json({ success: true });
     });
 
 router.delete('/:user_id', [AuthController.middleware], async (req: express.Request, res: express.Response) => {

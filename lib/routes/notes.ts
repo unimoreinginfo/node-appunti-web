@@ -107,6 +107,8 @@ router.post('/:subject_id/:note_id', AuthController.middleware, utils.requiredPa
         
     }catch(err){
         
+        console.log(err);
+        
         return HTTPError.GENERIC_ERROR.toResponse(res);
     
     }
@@ -227,7 +229,8 @@ router.delete('/:subject_id/:note_id', AuthController.middleware, async (req: ex
                 return HTTPError.UNAUTHORIZED.toResponse(res);
         }
         
-        await NoteController.deleteNote(req.params.note_id, parseInt(req.params.subject_id));
+        await NoteController.deleteNote(req.params.note_id, me.id, parseInt(req.params.subject_id));
+        await UserController.setUserSize(me.id);
         res.json({
             success: true
         });
