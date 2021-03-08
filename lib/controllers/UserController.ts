@@ -264,9 +264,15 @@ const self =  {
         return user.results[0];
     },
 
-    getUsers: async function (start: number): Promise<User[] | null> {
+    getUsers: async function (start: number) {
 
         let s = (start - 1) * 10;
+
+
+        let pages = Math.trunc((await db.query(`
+                select count(*) as count from users`)).results[0].count  / 10) + 1   
+
+
         let users = (await db.query(`
             SELECT 
                 id, 
@@ -280,10 +286,7 @@ const self =  {
             LIMIT 10 OFFSET ?
             `, [s]))
         
-        if(!users.results.length)
-            return null
-
-        return debufferize(users.results);
+        return {pages: pages, result: debufferize(users.results)};
         
     },
 
