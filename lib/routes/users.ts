@@ -9,13 +9,14 @@ let router = express.Router();
 
 router.get('/', AuthController.middleware, AuthController.adminMiddleware, async (req: express.Request, res: express.Response) => {
 
-    let result = await UserController.getUsers(
+    let query = await UserController.getUsers(
         parseInt(req.query.page as string || "1")
-    )
+    );    
     
     res.json({
         success: true,
-        result
+        pages: query.pages,
+        result: query.result
     });
 });
 
