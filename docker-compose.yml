@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  node:
+    depends_on:
+      - mysql
+      - redis
+    build:
+      context: .
+      network: host
+    ports:
+      - "1111:1111"
+    entrypoint: [ "./wait-for", "mysql:3306", "--", "npm", "run", "app" ]
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+  mysql:
+    image: "mysql"
+    restart: always
+    env_file:
+      .env

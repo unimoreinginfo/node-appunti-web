@@ -7,7 +7,7 @@ class RClient{
     #client: RedisClient;
     #host: string;
 
-    constructor(port: number, host: string = 'localhost'){
+    constructor(port: number, host: string = 'redis'){
         
         this.#port = port;
         this.#host = host;

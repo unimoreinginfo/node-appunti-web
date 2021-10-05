@@ -111,3 +111,7 @@ dist
 # Folder reserved to public files (in this case notes, propics...)
 public
 tmp
+
+wait-for
+# "npm è un coglione"
+package-lock.json

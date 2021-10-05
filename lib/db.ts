@@ -1,4 +1,4 @@
-import mysql, { Pool, createPool, OkPacket } from "mysql";
+import mysql, { Pool, createPool, OkPacket } from "mysql2";
 
 class Db {
     pool: Pool | undefined = undefined;
@@ -10,10 +10,10 @@ class Db {
         if (this.pool !== undefined) return;
         
         this.pool = createPool({
-            host: process.env.DB_HOST,
-            database: process.env.DB_NAME,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
+            host: process.env.MYSQL_HOST,
+            database: process.env.MYSQL_DATABASE,
+            user: process.env.MYSQL_USER,
+            password: process.env.MYSQL_PASSWORD,
             multipleStatements: true
         });
     }
@@ -25,7 +25,7 @@ class Db {
                     return reject(err);
                 
                 if(buffered_results)
-                    results = debufferize(results);
+                    results = debufferize(results as any);
 
                 return resolve({
                     results,
