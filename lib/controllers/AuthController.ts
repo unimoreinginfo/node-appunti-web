@@ -149,7 +149,7 @@ const self = {
             next();
         } catch (err) {
             
-            if (err.message === 'jwt malformed') // lol non c'è TokenMalformedException
+            if ((err as any).message === 'jwt malformed') // lol non c'è TokenMalformedException
                 return HTTPError.MALFORMED_CREDENTIALS.toResponse(res);
 
             self.getSession(refresh_token)
