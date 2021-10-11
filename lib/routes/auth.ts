@@ -15,7 +15,7 @@ router.post('/add_unimore_id', AuthController.middleware, utils.requiredParamete
 
     try{
 
-        let me = JSON.parse(res.get('user'));
+        let me = res.locals.user as User;
         await UserController.updateUnimoreId(me.id, req.body.unimore_id);
         await UserController.sendConfirmationEmail(me.id);
         res.json({
@@ -112,7 +112,16 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
         
         await AuthController.addRefreshToken(refresh_token, auth_token, user.id);
 
-        res.cookie('ref_token', refresh_token, {path: '/', domain: process.env.HOST, sameSite: 'none', maxAge: parseInt(process.env.REFRESH_TOKEN_TIMEOUT_MILLISECONDS as string), httpOnly: true, secure: true});
+        res.cookie('ref_token', refresh_token, {
+            path: '/',
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : 'localhost',
+            maxAge: parseInt(
+                process.env.REFRESH_TOKEN_TIMEOUT_MILLISECONDS as string
+            ),
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production' ? true : false
+        });
         res.json({success: true, auth_token, refresh_token, refresh_token_expiry: ((Date.now() / 1000) + parseInt((<string>process.env.REFRESH_TOKEN_TIMEOUT_SECONDS))).toFixed(0)}); 
         
     }catch(err){
@@ -125,7 +134,7 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
 
 router.get('/user', AuthController.middleware, async(req: express.Request, res: express.Response) => {
 
-    let me = JSON.parse(res.get('user'));
+    let me = res.locals.user as User;
     
     res.json({
         success: true,

@@ -56,7 +56,7 @@ export default class Router{
         this.#app.use('/notes', require("./routes/notes"));
         this.#app.use('/users', require("./routes/users"));
         this.#app.use('/auth', require("./routes/auth"));
-     //   this.#app.use('/webhooks', require("./routes/webhooks"));
+        this.#app.use('/webhooks', require("./routes/webhooks"));
         
         this.#app.listen(process.env.PORT);
 

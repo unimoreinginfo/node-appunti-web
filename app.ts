@@ -15,6 +15,11 @@ if(!process.env.MAX_FILES_PER_REQUEST) throw new Error("max files per request li
 if(!process.env.NOREPLY) throw new Error("specify email account") 
 if(!process.env.NOREPLY_PASSWORD) throw new Error("specify email account password") 
 
+if(process.env.NODE_ENV === 'dev'){
+    process.env.DOMAIN = `localhost:${process.env.PORT}`;
+    process.env.URI = `http://localhost:${process.env.PORT}`
+}
+
 const router = new Router();
 router.init();
 

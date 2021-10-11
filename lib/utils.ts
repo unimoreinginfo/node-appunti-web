@@ -13,6 +13,22 @@ let mutex = new Mutex();
 let self = {
 
     mutex,
+    validURL(url: string): boolean{
+        
+        try{
+
+            const u = new URL(url);            
+            if(u.protocol != 'https:') return false;
+
+            return true;
+
+        }catch(err){
+
+            return false;
+
+        }
+
+    },
     deleteTmpFiles: async(files: any): Promise<void> => {
         try{
 

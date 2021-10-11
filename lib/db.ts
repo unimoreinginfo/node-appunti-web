@@ -1,4 +1,6 @@
+import { rejects } from "assert";
 import mysql, { Pool, createPool, OkPacket } from "mysql2";
+import PoolConnection from "mysql2/typings/mysql/lib/PoolConnection";
 
 class Db {
     pool: Pool | undefined = undefined;
@@ -17,7 +19,30 @@ class Db {
             multipleStatements: true
         });
     }
+    getConnection(connection?: WrappedConnection): Promise<WrappedConnection>{
 
+        return new Promise(
+            (resolve, reject) => {
+
+                if(!this.pool)
+                    throw new Error('pool uninitialized');
+
+                if(connection)
+                    return resolve(connection);
+
+                this.pool.getConnection((err, conn) => {
+
+                    if(err)
+                        return reject(err);                    
+
+                    return resolve(new WrappedConnection(conn)); // downcasting
+                
+                })
+
+            }
+        )
+
+    }
     query(query: string, options: any = {}, buffered_results: boolean = false): any {
         return new Promise((resolve, reject) => {
             this.pool!.query(query, options, function (err, results, fields) {
@@ -33,6 +58,48 @@ class Db {
                 });
             });
         });
+    }
+}
+
+export class WrappedConnection{
+
+    private connection: PoolConnection;
+    private released: boolean = false;
+
+    constructor(conn: PoolConnection){
+        this.connection = conn;
+    }
+
+    async release(): Promise<void>{
+        
+        if(this.released)
+            return;
+
+        this.released = true;
+        this.connection.release();
+
+    }
+
+    query(query: string, options: any = {}): Promise<any>{
+
+        return new Promise(
+            (resolve, reject) => {
+
+                this.connection.query(query, options, (err, results, fields) => {
+
+                    if(err)
+                        return reject(err);
+                    
+                    return resolve({
+                        results,
+                        fields
+                    });
+        
+                })
+            
+            }
+        )
+
     }
 }
 

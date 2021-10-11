@@ -9,6 +9,7 @@ import UserController from '../controllers/UserController';
 import { debufferize } from '../db'
 import { unlink } from 'fs-extra'
 import path from 'path'
+import { User } from '../controllers/UserController';
 
 let router = express.Router();
 
@@ -82,7 +83,7 @@ router.post('/:subject_id/:note_id', AuthController.middleware, utils.requiredPa
 
     try{
 
-        let me = JSON.parse(res.get("user"));        
+        let me = res.locals.user as User;        
         let note = await (NoteController.getNote(req.params.note_id, parseInt(req.params.subject_id), false));        
 
         if(!note)
@@ -119,7 +120,7 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
 
     try{
 
-        let me = JSON.parse(res.get('user'));
+        let me = res.locals.user as User;
 
         if(!(await UserController.isUserVerified(me.id)))
             return new HTTPError('user_not_verified', 403).toResponse(res);
@@ -218,7 +219,7 @@ router.get('/:subject_id/:note_id', async (req: express.Request, res: express.Re
 router.delete('/:subject_id/:note_id', AuthController.middleware, async (req: express.Request, res: express.Response) => {
     try{
         
-        let me = JSON.parse(res.get('user'));
+        let me = res.locals.user as User;
         let note = await NoteController.getNote(req.params.note_id, parseInt(req.params.subject_id), false);
 
         if(!note)

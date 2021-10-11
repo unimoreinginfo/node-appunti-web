@@ -7,9 +7,10 @@ services:
     build:
       context: .
       network: host
+    volumes:
+       - .:/code # bind per hot reloading
     ports:
       - "1111:1111"
-    entrypoint: [ "./wait-for", "mysql:3306", "--", "npm", "run", "app" ]
   redis:
     image: "redis:alpine"
     ports:

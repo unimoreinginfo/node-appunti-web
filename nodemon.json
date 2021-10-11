@@ -1,0 +1,6 @@
+{
+    "watch": ["**/*.ts"],
+    "ignore": ["build"],
+    "exec": "tsc && node build/app.js",
+    "ext": "ts"
+}

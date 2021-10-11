@@ -3,8 +3,7 @@ import bcrypt from "bcryptjs";
 import { Request, Response, NextFunction } from 'express'
 import HTTPError from "../HTTPError"
 import UserController, { User } from "../controllers/UserController"
-import jwt, { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
-import utils from '../utils';
+import jwt, { TokenExpiredError } from "jsonwebtoken";
 
 export interface JWTPayload {
     user_id: string,
@@ -78,7 +77,7 @@ const self = {
     },
     adminMiddleware: async(req: Request, res: Response, next: NextFunction) => {
 
-        let me = JSON.parse(res.get('user'));
+        let me = res.locals.user as User;
         let user = await UserController.getUser(me.id);
 
         if(!user)
@@ -93,7 +92,7 @@ const self = {
 
     userManagementMiddleware: async (req: Request, res: Response, next: NextFunction) => {
 
-        let me = JSON.parse(res.get('user'));
+        let me = res.locals.user as User;
         let user_id = req.params.user_id;
 
         if (me.id != user_id && !me.admin)
@@ -131,7 +130,7 @@ const self = {
             let user = await UserController.getUser(jwt_payload.user_id);
             if(!user) return HTTPError.USER_NOT_FOUND.toResponse(res);
 
-            res.set('user', JSON.stringify(user));
+            res.locals["user"] = user;
 
             let user_data = `User data:\n\tid: ${user.id}, name: ${user.name}, surname: ${user.surname}`;
 

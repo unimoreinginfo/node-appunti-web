@@ -22,7 +22,7 @@ router.get('/', AuthController.middleware, AuthController.adminMiddleware, async
 
 router.get('/size', AuthController.middleware, async(req: express.Request, res: express.Response) => {
 
-    let me = JSON.parse(res.get('user')) as User;
+    let me = res.locals.user as User;
     let folder_size = await UserController.getUserSize(me.id);
     let folder_size_kilobytes = parseFloat((folder_size / 1024).toFixed(2)),
         folder_size_megabytes = parseFloat((folder_size / (1024 * 1024)).toFixed(2)),
@@ -57,7 +57,7 @@ router.post('/:user_id',
     [AuthController.middleware, AuthController.userManagementMiddleware],
     async (req: express.Request, res: express.Response) => {
 
-        let me = JSON.parse(res.get('user'));
+        let me = res.locals.user as User;
         let user_id = req.params.user_id;
 
         if (!me.admin && req.body.password)
@@ -90,7 +90,7 @@ router.post('/:user_id/password',
 
         try{
 
-            let me = JSON.parse(res.get('user'));
+            let me = res.locals.user as User;
             let user_id = req.params.user_id;
             
             if (!me.admin) {
@@ -126,7 +126,7 @@ router.post('/:user_id/password',
     });
 
 router.delete('/:user_id', [AuthController.middleware], async (req: express.Request, res: express.Response) => {
-    let me = JSON.parse(res.get('user'));
+    let me = res.locals.user as User;
     if (!me.admin) 
         return HTTPError.UNAUTHORIZED.toResponse(res);
 

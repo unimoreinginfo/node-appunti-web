@@ -5,11 +5,9 @@
   "description": "esghere",
   "main": "build/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "app": "tsc && node build/app.js",
-    "daemonized": "tsc && pm2 start process.json",
-    "seed": "tsc && node build/db_seed.js",
-    "compile": "tsc"
+    "compile": "tsc",
+    "app-prod": "nodemon",
+    "app-dev": "nodemon NODE_ENV=development"
   },
   "repository": {
     "type": "git",
@@ -30,6 +28,7 @@
     "@types/nodemailer": "^6.4.0",
     "@types/redis": "^2.8.26",
     "async-mutex": "^0.2.4",
+    "axios": "^0.22.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",

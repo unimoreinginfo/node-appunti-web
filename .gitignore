@@ -8,6 +8,7 @@ lerna-debug.log*
 .package.swp
 *.sql
 *.db
+wait-for
 # robe dev
 build/*
 # lib/routes/webhooks/*
