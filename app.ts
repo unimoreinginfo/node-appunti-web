@@ -2,6 +2,7 @@
 import * as dotenv from "dotenv";
 import Router from "./lib/Router";
 import db from "./lib/db";
+import workers from './lib/workers';
 
 dotenv.config();
 
@@ -22,5 +23,4 @@ if(process.env.NODE_ENV === 'dev'){
 
 const router = new Router();
 router.init();
-
 db.init();

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import NoteController from "../controllers/NoteController";
 import AuthController from "../controllers/AuthController";
 import SubjectController from "../controllers/SubjectController";
@@ -10,6 +10,7 @@ import { debufferize } from '../db'
 import { unlink } from 'fs-extra'
 import path from 'path'
 import { User } from '../controllers/UserController';
+import workers from '../workers';
 
 let router = express.Router();
 
@@ -178,13 +179,16 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
         }
         
         await Promise.all(delete_queue);
-        let r = await NoteController.addNotes(me.id, title, ok_queue, subject_id);
+        let note = await NoteController.addNotes(me.id, title, ok_queue, subject_id);
         await UserController.setUserSize(me.id);
+        // workers.notes.queue(w => w.broadcastNote(note));
 
-        res.json({ success: true, written_files: r.written_files, url: r.url });
+        res.json({ success: true, written_files: note.written_files, url: note.storage_url });
 
     }catch(err){
-
+        
+        console.log(err);
+        
         return HTTPError.GENERIC_ERROR.toResponse(res);
 
     }

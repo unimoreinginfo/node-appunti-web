@@ -9,10 +9,27 @@ interface TestableParam{
     re: RegExp
 }
 let mutex = new Mutex();
+function* batch<T>(arr: Array<T>, size: number){
+
+    let a = new Array<T>();
+    for(let i = 0; i < arr.length; i++){
+
+        if(i % size == 0 && i > 0){
+            yield a;
+            a = [];
+        }
+        a.push(arr[i]);
+
+    }
+
+    yield a; // butta fuori gli elementi rimanenti
+
+}
 
 let self = {
 
     mutex,
+    batch,
     validURL(url: string): boolean{
         
         try{

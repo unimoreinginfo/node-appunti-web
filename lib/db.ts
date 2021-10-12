@@ -2,11 +2,10 @@ import { rejects } from "assert";
 import mysql, { Pool, createPool, OkPacket } from "mysql2";
 import PoolConnection from "mysql2/typings/mysql/lib/PoolConnection";
 
-class Db {
+export class Db {
     pool: Pool | undefined = undefined;
 
-    constructor() {
-    }
+    constructor() {}
 
     init() {
         if (this.pool !== undefined) return;

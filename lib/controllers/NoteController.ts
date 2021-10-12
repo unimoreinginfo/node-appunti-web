@@ -5,6 +5,7 @@ import { readdir, rmdirSync } from 'fs-extra';
 import { User } from "./UserController";
 import redis from '../redis'
 import utils from '../utils'
+import { Note } from "../types";
  
 const self = {
     
@@ -83,7 +84,7 @@ const self = {
     
     },
 
-    addNotes: async (author_id: string, title: string, file: any | any[], subject_id: number) => {
+    addNotes: async (author_id: string, title: string, file: any | any[], subject_id: number): Promise<Note> => {
 
         if(isNaN(subject_id))
             return Promise.reject(false);
@@ -98,14 +99,24 @@ const self = {
             stuff = file.map(f => { return f });
         
         stuff.forEach(f => jobs.push(self.createFile(f, title, notes_id, author_id)));
-        let results = await Promise.all(jobs);
+        let results = await Promise.all(jobs),
+            now = new Date();
 
         const q = await db.query(
             "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, 0)",
-            [notes_id, title, new Date(), `/public/notes/${author_id}/${notes_id}`, subject_id, author_id]
+            [notes_id, title, now, `/public/notes/${author_id}/${notes_id}`, subject_id, author_id]
         );
 
-        return { written_files: file.length, url: `/notes/${subject_id}/${notes_id}` };        
+        return { 
+                written_files: file.length, 
+                storage_url: `/notes/${subject_id}/${notes_id}`, 
+                id: notes_id, 
+                title, 
+                uploaded_at: now,  
+                subject_id,
+                author_id,
+                visits: 0
+            };  
 
     },
 

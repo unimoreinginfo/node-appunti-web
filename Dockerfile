@@ -1,4 +1,5 @@
 FROM node:14-alpine
+RUN apk add coreutils
 WORKDIR /code
 COPY . .
 RUN npm install
