@@ -1,5 +1,5 @@
 import axios from 'axios';
-import db from '../../db';
+import db, { core } from '../../db';
 import bcrypt from 'bcryptjs';
 
 import {
@@ -15,14 +15,14 @@ const self = {
         try{
             
             await conn.query("START TRANSACTION");
-            const client_id = randomBytes(32).toString('hex'),
+            const client_id = randomBytes(16).toString('hex'),
                 client_secret = randomBytes(32).toString('hex');
             
-            await conn.query("INSERT INTO note_webhooks VALUES(?, ?, ?, ?, ?, 1)", [
+            await conn.query(`INSERT INTO notes_webhooks VALUES(?, ?, ?, HEX(AES_ENCRYPT(?, ${core.escape(process.env.AES_KEY)})), 1, ?)`, [
                 client_id,
                 webhook_title,
                 webhook_url,
-                await bcrypt.hash(client_secret, 8),
+                client_secret,
                 user.id
             ])
 
@@ -34,7 +34,7 @@ const self = {
         }catch(err){
 
             await conn.release();
-            Promise.reject(err);
+            return Promise.reject(err);
 
         }
 
