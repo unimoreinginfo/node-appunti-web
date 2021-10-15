@@ -28,6 +28,8 @@ if(!process.env.NOREPLY_PASSWORD) throw new Error("specify email account passwor
         // await populateWebhooks();
     }
 
+    console.log(process.env.NODE_ENV);
+    
     const router = new Router();
     router.init();
 

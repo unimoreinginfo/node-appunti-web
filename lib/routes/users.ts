@@ -21,7 +21,7 @@ router.get('/', AuthController.middleware, AuthController.adminMiddleware, async
 });
 
 router.get('/size', AuthController.middleware, async(req: express.Request, res: express.Response) => {
-
+    
     let me = res.locals.user as User;
     let folder_size = await UserController.getUserSize(me.id);
     let folder_size_kilobytes = parseFloat((folder_size / 1024).toFixed(2)),

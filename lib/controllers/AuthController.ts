@@ -109,6 +109,8 @@ const self = {
 
     middleware: async (req: Request, res: Response, next: NextFunction) => {
 
+        console.log("middleware " + req.originalUrl);
+
         if (!req.headers.authorization)
             return HTTPError.INVALID_CREDENTIALS.toResponse(res);
 
@@ -123,6 +125,9 @@ const self = {
             
             let jwt_payload = await jwt.verify(token, process.env.JWT_KEY, { algorithm: 'HS256' });
             let session = await self.getSession(refresh_token);            
+            console.log(jwt_payload);
+            
+            console.log(refresh_token, session.user_id);
 
             if(!session || session.user_id != jwt_payload.user_id)
                 return HTTPError.INVALID_CREDENTIALS.toResponse(res);
@@ -141,9 +146,10 @@ const self = {
                 ${req.method} ${req.originalUrl}
                 ${(res.locals.user != undefined) ? user_data : 'unlogged user requesting'}
                 IP: ${req.ip}
-
+                
             =====================================================================
             `);
+            
 
             next();
         } catch (err) {
@@ -242,7 +248,8 @@ const self = {
     addRefreshToken: async (token: string, auth_token: string, user_id: string): Promise<any | Error> => {
 
         try {
-
+            
+            console.log(token, auth_token, user_id)
             let expiry: number = (new Date().getTime() / 1000) + parseInt(process.env.REFRESH_TOKEN_TIMEOUT_SECONDS!);
             await db.query("INSERT INTO sessions VALUES (?, ?, ?, ?)", [token, user_id, expiry, auth_token])
 
