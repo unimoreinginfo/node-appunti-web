@@ -9,6 +9,7 @@ lerna-debug.log*
 *.sql
 *.db
 wait-for
+db_data
 # robe dev
 build/*
 # lib/routes/webhooks/*

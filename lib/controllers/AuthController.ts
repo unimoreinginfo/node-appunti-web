@@ -139,7 +139,7 @@ const self = {
             =====================================================================
                 Date: ${new Date()}
                 ${req.method} ${req.originalUrl}
-                ${(res.get('user') != undefined) ? user_data : 'unlogged user requesting'}
+                ${(res.locals.user != undefined) ? user_data : 'unlogged user requesting'}
                 IP: ${req.ip}
 
             =====================================================================
@@ -191,6 +191,7 @@ const self = {
                 })
                 .catch(e => {
                         
+                    
                         HTTPError.GENERIC_ERROR.toResponse(res)
 
                     }

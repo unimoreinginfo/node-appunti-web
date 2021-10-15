@@ -1,6 +1,15 @@
-import { rejects } from "assert";
-import mysql, { Pool, createPool, OkPacket } from "mysql2";
+import mysql, { Pool, createPool, createConnection } from "mysql2";
 import PoolConnection from "mysql2/typings/mysql/lib/PoolConnection";
+
+export const newConnection = () => {
+    return createConnection({
+        host: process.env.MYSQL_HOST,
+        database: process.env.MYSQL_DATABASE,
+        user: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD,
+        multipleStatements: true
+    })
+}
 
 export class Db {
     pool: Pool | undefined = undefined;
@@ -42,8 +51,12 @@ export class Db {
         )
 
     }
+    pureQuery(query: string, options: any = []){
+        return this.pool!.query(query, options);
+    }
     query(query: string, options: any = {}, buffered_results: boolean = false): any {
         return new Promise((resolve, reject) => {
+            
             this.pool!.query(query, options, function (err, results, fields) {
                 if (err)
                     return reject(err);
