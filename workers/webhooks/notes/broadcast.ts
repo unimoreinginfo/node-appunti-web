@@ -6,6 +6,7 @@ import { createHmac, createCipheriv, randomBytes } from "crypto";
 import stringify from 'safe-json-stringify';
 import { PossibleWorker } from "../../../lib/WorkerPool";
 import { Query } from "mysql2";
+import Sntp from "sntp";
 
 db.init();
 
@@ -83,11 +84,14 @@ const work = async(stream: Query, note: Note) => {
 
 const send = async (note: Note, url: string, secret: string) => {
 
-    const packet = pack(note, secret.substr(0, 32)).toString('utf-8');
+    const pkg = await pack(note, secret.substr(0, 32));
+    const packed_data = pkg.packet.toString('utf-8');
+    const packed_iv = pkg.init_vector.toString('hex');
 
     axios.post(url, { note }, {
         headers: {
-            'X-Appunti-Digest': packet
+            'X-Appunti-Digest': packed_data,
+            'X-Appunti-IV': packed_iv
         },
         timeout: 3500
     }).catch(_ => deactivateUrl(url))
@@ -101,22 +105,24 @@ const deactivateUrl = async (url: string) => {
     await db.query("COMMIT");
 }
 
-const pack = (note: Note, secret: string) => {
-
+const pack = async(note: Note, secret: string) => {
+   
     const hmac = createHmac('sha3-256', secret);
-    const date = parseInt((Date.now() / 1000).toString());
+    const sntp_time = await Sntp.time();
+    const date = parseInt((sntp_time.receiveTimestamp / 1000).toString());
     const str_date = date.toString();
-    const cipher = createCipheriv('aes-256-cbc', secret, randomBytes(16) /* iv */);
-    const enc_text = Buffer.concat([cipher.update(str_date), cipher.final()]).toString('hex');
+    const init_vector = randomBytes(16);
+    const cipher = createCipheriv('aes-256-cbc', secret, init_vector);
+    const enc_text = Buffer.concat([cipher.update(str_date), cipher.final()]).toString('hex');    
 
     hmac.update(stringify(note));
     const digest = hmac.digest('hex');
     const digest_buf = Buffer.from(digest),
         date_buf = Buffer.from(enc_text),
         colon_buf = Buffer.from(':');
-    const packet = Buffer.concat([date_buf, colon_buf, digest_buf]);
+    const packet = Buffer.concat([date_buf, colon_buf, digest_buf]);   
 
-    return packet;
+    return { packet, init_vector };
 
 }
 
