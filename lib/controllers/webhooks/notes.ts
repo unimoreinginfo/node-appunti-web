@@ -16,7 +16,7 @@ const self = {
             
             await conn.query("START TRANSACTION");
             const client_id = randomBytes(16).toString('hex'),
-                client_secret = randomBytes(32).toString('hex');
+                client_secret = randomBytes(16).toString('hex');
             
             await conn.query(`INSERT INTO notes_webhooks VALUES(?, ?, ?, HEX(AES_ENCRYPT(?, ${core.escape(process.env.AES_KEY)})), 1, ?)`, [
                 client_id,
