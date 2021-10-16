@@ -25,7 +25,7 @@ if(!process.env.NOREPLY_PASSWORD) throw new Error("specify email account passwor
     if(process.env.NODE_ENV === 'dev'){
         process.env.DOMAIN = `localhost:${process.env.PORT}`;
         process.env.URI = `http://localhost:${process.env.PORT}`
-        //await createDummyUser();
+        // await createDummyUser();
         // await populateWebhooks();
     }
     
