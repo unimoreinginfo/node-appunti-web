@@ -67,12 +67,10 @@ export class WorkerPool<Y extends PossibleJob> extends TypedEmitter<Possible> {
         
         if(worker){
             
-            console.log(`${worker.id} scheduled to work (${item.id})!`)
             this.busy_workers.push(worker);
             worker.work(item);
 
             worker.once('done', () => {
-                console.log(`${worker.id} finished working (${item.id})!`)
                 this.busy_workers.pull(worker);
                 this.workers.push(worker);
             })
