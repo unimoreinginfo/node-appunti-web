@@ -5,6 +5,7 @@ import db from "./lib/db";
 import { createDummyUser, populateWebhooks } from './dev-utils';
 import { WorkerPool } from "./lib/WorkerPool";
 import { NoteWorker } from "./workers/webhooks/notes/broadcast";
+import { Note } from "./lib/types";
 
 dotenv.config();
 db.init();
@@ -24,12 +25,17 @@ if(!process.env.NOREPLY_PASSWORD) throw new Error("specify email account passwor
     if(process.env.NODE_ENV === 'dev'){
         process.env.DOMAIN = `localhost:${process.env.PORT}`;
         process.env.URI = `http://localhost:${process.env.PORT}`
-        // await createDummyUser();
+        //await createDummyUser();
         // await populateWebhooks();
     }
+    
+    const wp = new WorkerPool<Note>(10, '../../workers/webhooks/notes/broadcast.ts');
+    wp.on('ready', () => {
 
-    const router = new Router();
-    router.init();
+        const router = new Router(wp);
+        router.init();
+
+    })
 
 })()
 

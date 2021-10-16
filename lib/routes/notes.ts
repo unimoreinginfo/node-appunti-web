@@ -10,6 +10,7 @@ import { debufferize } from '../db'
 import { unlink } from 'fs-extra'
 import path from 'path'
 import { User } from '../controllers/UserController';
+import { WorkerPool } from '../WorkerPool';
 
 let router = express.Router();
 
@@ -180,7 +181,8 @@ router.post('/', AuthController.middleware, utils.requiredParameters("POST", ["t
         await Promise.all(delete_queue);
         let note = await NoteController.addNotes(me.id, title, ok_queue, subject_id);
         await UserController.setUserSize(me.id);
-        // workers.notes.queue(w => w.broadcastNote(note));
+        const pools = res.app.locals.worker_pools as WorkerPool<any>[];
+        pools[0].dispatch(note);
 
         res.json({ success: true, written_files: note.written_files, url: note.storage_url });
 

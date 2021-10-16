@@ -8,14 +8,17 @@ const cors = require("cors");
 import HTTPError from './HTTPError'
 import db from './db'
 import { NoteWorker } from '../workers/webhooks/notes/broadcast';
+import { WorkerPool } from './WorkerPool';
 
 export default class Router{
 
     #app: express.Application;
+    #worker_pools: WorkerPool<any>[];
 
-    constructor(){
+    constructor(...wp: WorkerPool<any>[]){
     
         this.#app = express();
+        this.#worker_pools = wp;        
 
     }
 
@@ -50,6 +53,7 @@ export default class Router{
         this.#app.use('/users', require("./routes/users"));
         this.#app.use('/auth', require("./routes/auth"));
         this.#app.use('/webhooks', require("./routes/webhooks"));
+        this.#app.locals["worker_pools"] = this.#worker_pools;
         
         this.#app.listen(process.env.PORT);
 

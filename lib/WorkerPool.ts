@@ -14,7 +14,7 @@ export interface PossibleWorker extends WorkerModule<any> {
     broadcast: (item: PossibleJob) => void;
 }
 
-export class WorkerPool<Y extends PossibleJob, Q> extends TypedEmitter<Possible> {
+export class WorkerPool<Y extends PossibleJob> extends TypedEmitter<Possible> {
 
     /*
         non posso fare WorkerPool<T extends PossibleWorker> perché sta lib ha un modo di gestire i tipi orrendo
@@ -29,7 +29,6 @@ export class WorkerPool<Y extends PossibleJob, Q> extends TypedEmitter<Possible>
     private busy_workers: EventQueue<WrappedWorker<Y>>;
     private path: string;
     private q: number;
-    private stuff: EventQueue<Y>;
 
     constructor(size: number, worker_path: string){
 
@@ -39,8 +38,7 @@ export class WorkerPool<Y extends PossibleJob, Q> extends TypedEmitter<Possible>
         this.q = 0;
         this.workers = new EventQueue<WrappedWorker<Y>>();
         this.busy_workers = new EventQueue<WrappedWorker<Y>>();
-        this.stuff = new EventQueue<Y>();
-
+        
         this.init();
 
     }
