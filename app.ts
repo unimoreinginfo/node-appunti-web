@@ -29,7 +29,7 @@ if(!process.env.NOREPLY_PASSWORD) throw new Error("specify email account passwor
         // await populateWebhooks();
     }
     
-    const wp = new WorkerPool<Note>(10, '../../workers/webhooks/notes/broadcast.ts');
+    const wp = new WorkerPool<Note>(2, '../../workers/webhooks/notes/broadcast.ts');
     wp.on('ready', () => {
     
         const router = new Router(wp);

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import db, { core } from '../../db';
+import db, { core, WrappedConnection } from '../../db';
 import bcrypt from 'bcryptjs';
 
 import {
@@ -8,6 +8,34 @@ import {
 import { User } from '../UserController';
 
 const self = {
+
+    async byUser(user: User, connection?: WrappedConnection){
+
+        const conn = await db.getConnection(connection);
+
+        try{
+
+            const webhooks = (await conn.query(`
+                SELECT client_id, 
+                    cast(aes_decrypt(unhex(client_secret), ${core.escape(process.env.AES_KEY)}) as char(32)) as secret
+                    FROM notes_webhooks WHERE owner = ?
+                `, [user.id])).results;
+
+            if(!connection) await conn.release();
+            
+            return webhooks;
+
+            
+        }catch(err){
+
+            await conn.query("ROLLBACK");
+            if(!connection) await conn.release();
+            return Promise.reject(err);
+
+        }
+
+    },
+
     async create(webhook_title: string, webhook_url: string, user: User){
         
         const conn = await db.getConnection();

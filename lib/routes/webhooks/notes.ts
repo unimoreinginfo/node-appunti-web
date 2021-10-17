@@ -7,12 +7,24 @@ import utils from '../../utils';
 
 let router = express.Router();
 
-router.get('/', (req: express.Request, res: express.Response) => {
+router.get('/', 
+    AuthController.middleware,  
+    async(req: express.Request, res: express.Response) => {
 
-    res.json({
-        success: true,
-        message: 'hello from /webhooks/notes'
-    })
+    try{
+        const me = res.locals.user;
+        const webhooks = await WebHooksController.notes.byUser(me);
+
+        res.json({
+            success: true,
+            webhooks
+        })
+        
+    }catch(err){
+
+        return HTTPError.GENERIC_ERROR.toResponse(res);
+
+    }
 
 });
 

@@ -119,7 +119,7 @@ router.post('/login|signin', utils.requiredParameters("POST", ["email", "passwor
             maxAge: parseInt(
                 process.env.REFRESH_TOKEN_TIMEOUT_MILLISECONDS as string
             ),
-            sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'none',
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false
         });
