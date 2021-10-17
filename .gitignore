@@ -10,6 +10,7 @@ lerna-debug.log*
 *.db
 wait-for
 db_data
+appunti.db
 # robe dev
 build/*
 # lib/routes/webhooks/*
