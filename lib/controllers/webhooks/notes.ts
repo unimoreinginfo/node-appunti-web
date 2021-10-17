@@ -16,8 +16,9 @@ const self = {
         try{
 
             const webhooks = (await conn.query(`
-                SELECT client_id, 
-                    cast(aes_decrypt(unhex(client_secret), ${core.escape(process.env.AES_KEY)}) as char(32)) as secret
+                SELECT title, 
+                    client_id, 
+                    cast(aes_decrypt(unhex(client_secret), ${core.escape(process.env.AES_KEY)}) as char(32)) as client_secret
                     FROM notes_webhooks WHERE owner = ?
                 `, [user.id])).results;
 
