@@ -5,7 +5,7 @@ Da oggi appunti.me supporta gli webhooks per notificare vari eventi che accadono
 #### 0. TL;DR
 <a href="https://github.com/unimoreinginfo/node-appunti-web/blob/master/docs/webhooks/sample_express.js">Qua</a> puoi trovare un'implementazione in **Node.js** tramite <a href="https://www.npmjs.com/package/express">`express`</a> (no TypeScript).
 #### 1. Registrazione webhook
-Il primo passo da fare è quello di registrare un webhook alla nostra piattaforma recandoti alla <a href="https://appunti.me/dev"> pagina dedicata</a>.
+Il primo passo da fare è quello di registrare un webhook alla nostra piattaforma recandoti alla <a href="https://appunti.me/panel/developer"> pagina dedicata</a>.
 #### 2. Che cosa scatena la chiamata ad un webhook?
 Per ora l'unico evento che scatena gli webhook è l'<b>upload di appunti</b> da parte di un qualsiasi utente.<br>
 Vedremo cosa implementare a seconda delle varie funzioni del sito.
